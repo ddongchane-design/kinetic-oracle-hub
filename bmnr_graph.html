@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>BMNR 그래프 (V2)</title>
+<title>BMNR 심층 분석 | Kinetic Oracle</title>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6CXHMKPHPV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6CXHMKPHPV');
+</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -212,7 +220,7 @@ function renderInsights() {
   filtered.forEach(ins => {
     const pContent = marked.parse(ins.content);
     let onClickAttr = ins.targetNodes && ins.targetNodes.length > 0 
-      ? `onclick="window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`
+      ? `onclick="gtag('event','insight_click',{insight_title:'${ins.title.replace(/'/g,'')}',workspace:'bmnr_graph'}); window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`
       : '';
     let interactClass = ins.targetNodes && ins.targetNodes.length > 0 
       ? 'cursor-pointer hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200' 
