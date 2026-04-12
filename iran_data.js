@@ -24,7 +24,7 @@ window.DATA = {
     { "id": "ev_iran_leak", "type": "event", "label": "시민들의 이스라엘 첩보 협조", "desc": "혁명수비대 동선 및 고위층 회의실 위치를 텔레그램으로 첩보국에 역제보하여 외부 공격을 통한 자국 정권 타도 유도.", "x": null, "y": null },
 
     // 4. 파급 효과 및 전망 (Effects & Risks)
-    { "id": "ef_summit_fail", "type": "effect", "label": "고위급 협상 '노딜' 결렬", "desc": "21시간 접전 끝 합의 실패. 미 대표단 철수 및 돌파구 난망.", "depth": "단기", "sentiment": "neg", "x": null, "y": null },
+    { "id": "ef_summit_fail", "type": "event", "label": "고위급 협상 '노딜' 결렬 (4/12)", "desc": "21시간 마라톤 협상 끝 합의 실패 선언. JD Vance 美 부통령 '이란이 핵폐기 조건 수용 거부'로 미 대표단 전격 철수. 협상 재개 여지 불투명.", "x": null, "y": null },
     { "id": "ef_israel_strikes", "type": "effect", "label": "이스라엘 공습/변수 지속", "desc": "휴전 기간에도 이스라엘이 레바논 및 대이란 후방 교란 작전을 지속하며 언제 깨질지 모르는 살얼음판.", "depth": "단기", "sentiment": "neg", "x": null, "y": null },
     { "id": "ef_pressure_max", "type": "effect", "label": "트럼프/Vance 초강경 압박", "desc": "미 군함을 파병 배치하여 무력 압박. 트럼프 행정부는 '양보 없는 항복'만을 요구하며 최후의 고사 작전 돌입.", "depth": "중기", "sentiment": "neg", "x": null, "y": null },
     { "id": "ef_iran_collapse", "type": "effect", "label": "독재 정권 붕괴 임계점", "desc": "[핵심] 미-이스라엘 외부 군사 타격과, 인터넷이 차단된 혹독한 환경에도 피를 흘리며 맞서는 내부 시위대의 양동 작전 성과 가시화.", "depth": "중기", "sentiment": "pos", "x": null, "y": null },
