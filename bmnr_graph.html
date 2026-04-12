@@ -494,6 +494,66 @@ canvas.addEventListener('wheel',e=>{
   camera.s=Math.max(.15,Math.min(5,camera.s*d));
 },{passive:false});
 
+let initialPinchDistance = null;
+let initialCameraS = null;
+function getTouchPos(e, i=0) {
+  const r = canvas.getBoundingClientRect();
+  return { x: e.touches[i].clientX - r.left, y: e.touches[i].clientY - r.top };
+}
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    const p = getTouchPos(e); const nd = nodeAt(p.x, p.y);
+    if(nd) drag = {node:nd, ox:p.x, oy:p.y, nx:nd.x, ny:nd.y};
+    else pan = {sx:p.x, sy:p.y, cx:camera.x, cy:camera.y};
+  } else if (e.touches.length === 2) {
+    drag = null; pan = null;
+    const p1 = getTouchPos(e, 0), p2 = getTouchPos(e, 1);
+    initialPinchDistance = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    initialCameraS = camera.s;
+  }
+}, {passive: false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    const p = getTouchPos(e);
+    if(drag) {
+      drag.node.x = drag.nx + (p.x - drag.ox)/camera.s;
+      drag.node.y = drag.ny + (p.y - drag.oy)/camera.s;
+    } else if(pan) {
+      camera.x = pan.cx + (p.x - pan.sx); camera.y = pan.cy + (p.y - pan.sy);
+    }
+  } else if (e.touches.length === 2 && initialPinchDistance) {
+    const p1 = getTouchPos(e, 0), p2 = getTouchPos(e, 1);
+    const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    const d = dist / initialPinchDistance;
+    const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+    let newS = Math.max(.15, Math.min(5, initialCameraS * d));
+    const scaleRatio = newS / camera.s;
+    camera.x = mx - (mx - camera.x) * scaleRatio;
+    camera.y = my - (my - camera.y) * scaleRatio;
+    camera.s = newS;
+  }
+}, {passive: false});
+canvas.addEventListener('touchend', e => {
+  if (e.touches.length === 0) {
+    if (drag || pan) {
+      const p = e.changedTouches[0]; const r = canvas.getBoundingClientRect();
+      const tx = p.clientX - r.left, ty = p.clientY - r.top;
+      if(drag && Math.hypot(tx - drag.ox, ty - drag.oy) < 5) {
+        const nd = nodeAt(tx, ty); if(nd) selectNode(nd);
+      } else if(pan && Math.hypot(tx - pan.sx, ty - pan.sy) < 5) {
+        if(selected || activeFilter) {
+          if(activeFilter) toggleFilter(activeFilter);
+          selected = null; fitView();
+          document.getElementById('no-sel').classList.remove('hidden');
+          document.getElementById('det').classList.add('hidden');
+        }
+      }
+    }
+    drag = null; pan = null; initialPinchDistance = null;
+  }
+});
+
 document.addEventListener('click',e=>{ if(!ctxMenu.contains(e.target)&&e.target!==canvas) hideCtxMenu(); });
 
 document.getElementById('search-input').addEventListener('input',e=>handleSearch(e.target.value));
