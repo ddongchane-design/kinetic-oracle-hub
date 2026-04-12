@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지식 그래프</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#0d0f14;--bg2:#131620;--bg3:#1a1e2e;--bg4:#222638;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8eaf0;--text2:#9198b0;--text3:#5a6080;
+  --event:#7c6df0;--event-l:#a99af5;--event-bg:rgba(124,109,240,0.12);
+  --cause:#e8943a;--cause-l:#f0b478;--cause-bg:rgba(232,148,58,0.12);
+  --effect:#3ab87a;--effect-l:#6dd4a0;--effect-bg:rgba(58,184,122,0.12);
+  --shared:#c4527a;--danger:#e05470;--danger-bg:rgba(224,84,112,0.12);
+  --r:10px;--rlg:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* Header */
+#hd{display:flex;align-items:center;gap:10px;padding:0 16px;height:52px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+#hd h1{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+#hd h1 span{color:var(--event-l)}
+#hstats{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+/* Search bar in header */
+#search-wrap{display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:4px 10px;flex:1;max-width:260px;transition:border-color .15s}
+#search-wrap:focus-within{border-color:var(--event)}
+#search-wrap svg{opacity:.4;flex-shrink:0}
+#search-input{background:none;border:none;outline:none;color:var(--text);font-size:12px;width:100%;font-family:'Noto Sans KR',sans-serif}
+#search-input::placeholder{color:var(--text3)}
+#search-count{font-size:10px;color:var(--event-l);font-family:'JetBrains Mono',monospace;white-space:nowrap;display:none}
+
+.hbtns{margin-left:auto;display:flex;gap:5px;flex-shrink:0}
+.hbtns button{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;white-space:nowrap}
+.hbtns button:hover{background:var(--bg4);color:var(--text)}
+.hbtns button.refresh{border-color:var(--event);color:var(--event-l)}
+.hbtns button.refresh:hover{background:var(--event-bg)}
+.hbtns button.save-btn{border-color:var(--effect);color:var(--effect-l);display:none}
+.hbtns button.save-btn:hover{background:var(--effect-bg)}
+.hbtns button.save-btn.visible{display:block}
+
+/* Layout */
+#main{display:flex;flex:1;overflow:hidden}
+#gw{flex:1;position:relative;overflow:hidden}
+#gc{width:100%;height:100%;display:block;cursor:grab}
+#gc:active{cursor:grabbing}
+
+/* Sidebar */
+#sb{width:300px;flex-shrink:0;border-left:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden}
+#sb-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.stab{flex:1;padding:11px 0;font-size:12px;text-align:center;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;font-weight:500}
+.stab:hover{color:var(--text2)}
+.stab.active{color:var(--event-l);border-bottom-color:var(--event)}
+#sb-body{flex:1;overflow-y:auto;padding:14px}
+#sb-body::-webkit-scrollbar{width:4px}
+#sb-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* Detail */
+.d-badge{display:inline-block;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;margin-bottom:10px}
+.d-title{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4}
+.d-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px}
+.d-links-title{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px;font-weight:500}
+.chip{display:inline-block;font-size:11px;padding:3px 8px;border-radius:5px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);margin:2px 2px 2px 0;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--event);color:var(--event-l)}
+
+/* Delete button in detail */
+.del-btn{width:100%;margin-top:14px;padding:8px;border-radius:7px;border:1px solid rgba(224,84,112,.35);background:transparent;color:var(--danger);cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+.del-btn:hover{background:var(--danger-bg);border-color:var(--danger)}
+
+/* Legend */
+#leg{padding:10px 14px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0}
+.li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3)}
+.ld{width:8px;height:8px;border-radius:50%}
+
+/* Controls */
+#ctrl{position:absolute;bottom:16px;left:16px;display:flex;flex-direction:column;gap:4px}
+.cb{width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cb:hover{background:var(--bg4);color:var(--text)}
+
+/* Tooltip */
+#tip{position:absolute;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 13px;font-size:12px;max-width:200px;pointer-events:none;display:none;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#tip .tt{font-weight:600;color:var(--text);margin-bottom:3px;font-size:13px}
+#tip .tc{font-size:10px;margin-bottom:5px}
+#tip .td{color:var(--text2);line-height:1.5;font-size:11px}
+
+/* Context menu */
+#ctx-menu{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;min-width:140px}
+.ctx-item{padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:8px}
+.ctx-item:hover{background:var(--bg4)}
+.ctx-item.danger{color:var(--danger)}
+.ctx-item.danger:hover{background:var(--danger-bg)}
+
+/* Confirm modal */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center}
+#modal-overlay.show{display:flex}
+#modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+#modal h3{font-size:15px;margin-bottom:8px}
+#modal p{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:20px}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--text2);transition:all .15s}
+.modal-btns button:hover{background:var(--bg4);color:var(--text)}
+.modal-btns button.confirm{border-color:rgba(224,84,112,.4);color:var(--danger)}
+.modal-btns button.confirm:hover{background:var(--danger-bg)}
+
+/* Search results in sidebar */
+#search-results{display:none}
+.sr-item{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);margin-bottom:5px;cursor:pointer;transition:border-color .15s}
+.sr-item:hover{border-color:var(--event)}
+.sr-label{font-size:12px;font-weight:500;margin-bottom:2px}
+.sr-type{font-size:10px;color:var(--text3)}
+.sr-match{color:var(--event-l)}
+
+/* Empty */
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;color:var(--text3)}
+#empty svg{opacity:.2}
+
+/* Status bar */
+#status{position:absolute;bottom:16px;right:16px;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 10px}
+
+/* Depth badge */
+.dep{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-family:'JetBrains Mono',monospace}
+.dep.단기{background:rgba(232,148,58,.15);color:var(--cause-l)}
+.dep.중기{background:rgba(124,109,240,.15);color:var(--event-l)}
+.dep.장기{background:rgba(58,184,122,.15);color:var(--effect-l)}
+
+/* No selection */
+#no-sel{color:var(--text3);font-size:13px;text-align:center;padding:40px 0;line-height:1.8}
+
+/* Scrollbar */
+*{scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+
+/* Reload hint */
+#reload-hint{display:none;position:absolute;top:12px;left:50%;transform:translateX(-50%);background:var(--event-bg);border:1px solid var(--event);border-radius:8px;padding:8px 16px;font-size:12px;color:var(--event-l);cursor:pointer;z-index:50;white-space:nowrap}
+#reload-hint:hover{background:rgba(124,109,240,.2)}
+
+/* Keyboard shortcut hint */
+#key-hint{position:absolute;top:12px;right:16px;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;pointer-events:none;opacity:0;transition:opacity .3s}
+#key-hint.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="hd">
+  <h1 style="display:flex; align-items:center; gap:8px; font-size:15px; margin:0;">
+    <a href="index.html" style="color:var(--text3); text-decoration:none; display:flex; align-items:center; gap:4px; transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'" title="홈(허브)으로 돌아가기">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Hub
+    </a>
+    <span style="color:var(--text3); font-weight:300;">/</span>
+    <span style="cursor:pointer;" onclick="loadData()" title="그래프 새로고침">지식 <span>그래프</span></span>
+  </h1>
+  <span id="hstats">노드 0 · 연결 0</span>
+  <div id="search-wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="search-input" type="text" placeholder="노드 검색... (Ctrl+F)">
+    <span id="search-count"></span>
+  </div>
+  <div class="hbtns">
+    <button class="refresh" onclick="loadData()">새로고침</button>
+    <button onclick="fitView()">전체 보기</button>
+    <button onclick="toggleLabels()">라벨</button>
+    <button class="save-btn" id="save-btn" onclick="saveChanges()">💾 저장</button>
+    <button onclick="exportJSON()">내보내기</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="gw">
+    <canvas id="gc"></canvas>
+    <div id="tip"><div class="tt"></div><div class="tc"></div><div class="td"></div></div>
+    <div id="empty">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="12" cy="12" r="3"/>
+        <circle cx="3" cy="6" r="2"/><circle cx="21" cy="6" r="2"/>
+        <circle cx="3" cy="18" r="2"/><circle cx="21" cy="18" r="2"/>
+        <line x1="5" y1="7" x2="10" y2="11"/><line x1="19" y1="7" x2="14" y2="11"/>
+        <line x1="5" y1="17" x2="10" y2="13"/><line x1="19" y1="17" x2="14" y2="13"/>
+      </svg>
+      <p style="font-size:13px">data.js를 불러오는 중...</p>
+    </div>
+    <div id="ctrl">
+      <button class="cb" onclick="zoom(1.2)">+</button>
+      <button class="cb" onclick="zoom(0.8)">−</button>
+      <button class="cb" onclick="fitView()" style="font-size:11px">⊞</button>
+    </div>
+    <div id="reload-hint" onclick="loadData()">코워크가 데이터를 업데이트했습니다 — 클릭해서 새로고침</div>
+    <div id="status">대기 중</div>
+    <div id="key-hint">Del 키로 선택 노드 삭제</div>
+  </div>
+
+  <div id="sb">
+    <div id="sb-tabs">
+      <div class="stab active" onclick="switchTab('info')">정보</div>
+      <div class="stab" onclick="switchTab('detail')">상세</div>
+      <div class="stab" onclick="switchTab('search')">검색</div>
+    </div>
+    <div id="sb-body">
+
+      <div id="tab-info">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">사용 방법</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;margin-bottom:16px">
+          <div style="margin-bottom:6px"><span style="color:var(--event-l);font-weight:500">클릭</span> — 노드 상세 보기</div>
+          <div style="margin-bottom:6px"><span style="color:var(--event-l);font-weight:500">우클릭</span> — 노드 메뉴 (삭제)</div>
+          <div style="margin-bottom:6px"><span style="color:var(--event-l);font-weight:500">Del 키</span> — 선택 노드 삭제</div>
+          <div style="margin-bottom:6px"><span style="color:var(--event-l);font-weight:500">Ctrl+F</span> — 노드 검색</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">현재 사건 목록</div>
+        <div id="event-list"></div>
+        <div style="margin-top:16px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">교차 연결</div>
+        <div id="shared-list" style="font-size:12px;color:var(--text2);line-height:1.8"></div>
+      </div>
+
+      <div id="tab-detail" style="display:none">
+        <div id="no-sel">그래프에서 노드를 클릭하면<br>상세 정보가 표시됩니다</div>
+        <div id="det"></div>
+      </div>
+
+      <div id="tab-search" style="display:none">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">검색 결과</div>
+        <div id="search-results-list" style="font-size:12px;color:var(--text3);text-align:center;padding:20px 0">상단 검색창에 입력하세요</div>
+      </div>
+
+    </div>
+    <div id="leg">
+      <div class="li"><div class="ld" style="background:var(--event)"></div>핵심 사건</div>
+      <div class="li"><div class="ld" style="background:var(--cause)"></div>원인·배경</div>
+      <div class="li"><div class="ld" style="background:var(--effect)"></div>파급효과</div>
+      <div class="li"><div class="ld" style="background:var(--shared);border-radius:0;width:14px;height:2px"></div>교차 연결</div>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="focusSelected()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    상세 보기
+  </div>
+  <div class="ctx-item danger" onclick="confirmDelete()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4h6v2"/></svg>
+    노드 삭제
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h3>노드를 삭제할까요?</h3>
+    <p id="modal-msg">이 노드와 연결된 모든 엣지가 함께 삭제됩니다.<br>이 변경은 저장 전까지 되돌릴 수 없습니다.</p>
+    <div class="modal-btns">
+      <button onclick="closeModal()">취소</button>
+      <button class="confirm" onclick="executeDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js" id="data-script"></script>
+<script>
+const COL={event:'#7c6df0',cause:'#e8943a',effect:'#3ab87a'};
+const RAD={event:24,cause:16,effect:14};
+const SHARED='#c4527a';
+
+let G={nodes:[],edges:[]};
+let camera={x:0,y:0,s:1};
+let drag=null,pan=null,hovered=null,selected=null,showL=true;
+let raf=null,alpha=0;
+let lastMod=null;
+let searchQuery='';
+let searchMatches=[];
+let pendingDelete=null;
+let hasChanges=false;
+
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const tip=document.getElementById('tip');
+const ctxMenu=document.getElementById('ctx-menu');
+
+// ── Load data ──
+async function loadData() {
+  try {
+    setStatus('로딩 중...');
+    if (window.DATA) {
+      G = JSON.parse(JSON.stringify(window.DATA));
+    } else {
+      throw new Error('data.js 파일에서 데이터를 찾을 수 없습니다.');
+    }
+    G.nodes.forEach(n => { n.vx=n.vx||0; n.vy=n.vy||0; if(n.x==null){n.x=null;n.y=null;} });
+    initPositions();
+    updateStats();
+    updateEventList();
+    updateSharedList();
+    updateEmpty();
+    setStatus('로드 완료 · ' + new Date().toLocaleTimeString('ko-KR'));
+    document.getElementById('last-updated') && (document.getElementById('last-updated').textContent = '');
+    document.getElementById('reload-hint').style.display = 'none';
+    hasChanges = false;
+    document.getElementById('save-btn').classList.remove('visible');
+    startSim(1.0);
+    setTimeout(fitView, 600);
+  } catch(e) {
+    setStatus('오류: ' + e.message);
+    document.getElementById('empty').querySelector('p').textContent = '⚠ ' + e.message;
+  }
+}
+
+// ── Auto-watch ──
+let watchInterval=null;
+async function checkForUpdates() {
+  try {
+    const res = await fetch('data.js?t=' + Date.now(), { method: 'HEAD' });
+    const mod = res.headers.get('Last-Modified');
+    if (mod && mod !== lastMod) {
+      if (lastMod !== null) document.getElementById('reload-hint').style.display = 'block';
+      lastMod = mod;
+    }
+  } catch(e) {}
+}
+
+function initPositions() {
+  const W = canvas.width || 800, H = canvas.height || 600;
+  const events = G.nodes.filter(n => n.type === 'event');
+  const causes = G.nodes.filter(n => n.type === 'cause');
+  const effects = G.nodes.filter(n => n.type === 'effect');
+  events.forEach((n, i) => {
+    if (n.x == null) { n.x = W/2 + (i - (events.length-1)/2) * 250 + (Math.random()-.5)*40; n.y = H/2 + (Math.random()-.5)*60; }
+    n.vx=0; n.vy=0;
+  });
+  causes.forEach((n, i) => {
+    if (n.x == null) { n.x = W * 0.18 + (Math.random()-.5)*60; n.y = 80 + i * (H - 160) / Math.max(causes.length - 1, 1) + (Math.random()-.5)*30; }
+    n.vx=0; n.vy=0;
+  });
+  effects.forEach((n, i) => {
+    if (n.x == null) { n.x = W * 0.82 + (Math.random()-.5)*60; n.y = 80 + i * (H - 160) / Math.max(effects.length - 1, 1) + (Math.random()-.5)*30; }
+    n.vx=0; n.vy=0;
+  });
+}
+
+// ── Physics ──
+function startSim(a) { alpha = a; if (!raf) loop(); }
+function loop() {
+  if (alpha > 0.003) { tick(); alpha *= 0.965; }
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+function tick() {
+  G.nodes.forEach(n => { n.vx *= 0.76; n.vy *= 0.76; });
+  for (let i = 0; i < G.nodes.length; i++) {
+    for (let j = i+1; j < G.nodes.length; j++) {
+      const a = G.nodes[i], b = G.nodes[j];
+      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy)||1;
+      const f = -3500/(d*d)*alpha;
+      const fx = dx/d*f, fy = dy/d*f;
+      a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+    }
+  }
+  G.edges.forEach(e => {
+    const a = G.nodes.find(n=>n.id===e.from), b = G.nodes.find(n=>n.id===e.to);
+    if (!a||!b) return;
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    const tgt = e.shared ? 220 : 130;
+    const f = (d-tgt)*0.05*alpha;
+    const fx=dx/d*f, fy=dy/d*f;
+    a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+  });
+  const W=canvas.width, H=canvas.height;
+  G.nodes.forEach(n => {
+    n.x=Math.max(28,Math.min(W-28,n.x+n.vx));
+    n.y=Math.max(28,Math.min(H-28,n.y+n.vy));
+  });
+}
+
+// ── Draw ──
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.translate(camera.x,camera.y);
+  ctx.scale(camera.s,camera.s);
+
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle=e.shared?SHARED:'rgba(255,255,255,0.1)';
+    ctx.lineWidth=(e.shared?1:.7)/camera.s;
+    ctx.setLineDash(e.shared?[5,4]:[]);
+    ctx.globalAlpha=e.shared?.55:.5;
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    if(!e.shared) {
+      const ang=Math.atan2(b.y-a.y,b.x-a.x);
+      const r=(RAD[b.type]||14)+3;
+      const tx=b.x-Math.cos(ang)*r, ty=b.y-Math.sin(ang)*r;
+      ctx.beginPath();
+      ctx.moveTo(tx,ty);
+      ctx.lineTo(tx-10*Math.cos(ang-.42),ty-10*Math.sin(ang-.42));
+      ctx.lineTo(tx-10*Math.cos(ang+.42),ty-10*Math.sin(ang+.42));
+      ctx.closePath();
+      ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fill();
+    }
+    if(e.shared && e.label && showL) {
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      ctx.font='9px "Noto Sans KR",sans-serif';
+      ctx.fillStyle='rgba(196,82,122,0.7)';
+      ctx.textAlign='center';
+      ctx.fillText(e.label, mx, my-5);
+    }
+  });
+
+  G.nodes.forEach(n => {
+    const r=RAD[n.type]||14;
+    const isH=hovered&&hovered.id===n.id;
+    const isS=selected&&selected.id===n.id;
+    const isMatch=searchQuery&&searchMatches.includes(n.id);
+    const col=COL[n.type]||'#888';
+
+    // Search highlight glow
+    if(isMatch) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+14,0,Math.PI*2);
+      ctx.fillStyle='rgba(169,154,245,0.12)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+8,0,Math.PI*2);
+      ctx.strokeStyle='rgba(169,154,245,0.5)'; ctx.lineWidth=1.5/camera.s;
+      ctx.stroke();
+    }
+
+    if(isH||isS) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+10,0,Math.PI*2);
+      ctx.fillStyle=col+'18'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,Math.PI*2);
+      ctx.fillStyle=col+'28'; ctx.fill();
+    }
+    if(isS) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+6,0,Math.PI*2);
+      ctx.strokeStyle=col; ctx.lineWidth=1.5/camera.s;
+      ctx.globalAlpha=.6; ctx.stroke(); ctx.globalAlpha=1;
+    }
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.globalAlpha=isH||isS?1:.86; ctx.fill(); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(n.x-r*.25,n.y-r*.25,r*.32,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.11)'; ctx.fill();
+    if(showL) {
+      const lbl=n.label.length>12?n.label.slice(0,11)+'…':n.label;
+      ctx.font=(n.type==='event'?'600 ':'400 ')+'10px "Noto Sans KR",sans-serif';
+      ctx.fillStyle=n.type==='event'?'#e0dcff':'rgba(255,255,255,0.68)';
+      ctx.textAlign='center'; ctx.globalAlpha=.9;
+      ctx.fillText(lbl,n.x,n.y+r+13); ctx.globalAlpha=1;
+    }
+  });
+  ctx.restore();
+}
+
+// ── Interaction ──
+function nodeAt(x,y) {
+  const wx=(x-camera.x)/camera.s, wy=(y-camera.y)/camera.s;
+  return G.nodes.find(n=>{const r=(RAD[n.type]||14)+6;return Math.hypot(n.x-wx,n.y-wy)<r;});
+}
+
+canvas.addEventListener('mousedown',e=>{
+  if(e.button===2) return;
+  hideCtxMenu();
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y};
+  else pan={sx:x,sy:y,cx:camera.x,cy:camera.y};
+});
+
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) {
+    selected=nd;
+    showCtxMenu(e.clientX,e.clientY);
+  }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag){drag.node.x=drag.nx+(x-drag.ox)/camera.s;drag.node.y=drag.ny+(y-drag.oy)/camera.s;return;}
+  if(pan){camera.x=pan.cx+(x-pan.sx);camera.y=pan.cy+(y-pan.sy);return;}
+  const nd=nodeAt(x,y); hovered=nd||null;
+  canvas.style.cursor=nd?'pointer':'grab';
+  if(nd){
+    tip.style.display='block';
+    tip.style.left=Math.min(x+14,canvas.clientWidth-220)+'px';
+    tip.style.top=Math.max(y-14,4)+'px';
+    tip.querySelector('.tt').textContent=nd.label;
+    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')};
+    const tc=tip.querySelector('.tc'); tc.textContent=tm[nd.type]||''; tc.style.color=COL[nd.type]||'#888';
+    tip.querySelector('.td').textContent=nd.desc?(nd.desc.slice(0,90)+(nd.desc.length>90?'…':'')):''
+  } else tip.style.display='none';
+});
+
+canvas.addEventListener('mouseup',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5){const nd=nodeAt(x,y);if(nd)selectNode(nd);}
+  drag=null;pan=null;
+});
+
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const d=e.deltaY>0?.88:1.14;
+  camera.x=mx-(mx-camera.x)*d; camera.y=my-(my-camera.y)*d;
+  camera.s=Math.max(.15,Math.min(4,camera.s*d));
+},{passive:false});
+
+document.addEventListener('click',e=>{
+  if(!ctxMenu.contains(e.target)&&e.target!==canvas) hideCtxMenu();
+});
+
+// ── Keyboard ──
+document.addEventListener('keydown',e=>{
+  if((e.key==='Delete'||e.key==='Backspace')&&selected&&document.activeElement===document.body) {
+    e.preventDefault();
+    confirmDelete();
+  }
+  if(e.key==='Escape') {
+    closeModal();
+    hideCtxMenu();
+    if(searchQuery) {
+      document.getElementById('search-input').value='';
+      handleSearch('');
+    }
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='f') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+    switchTab('search');
+  }
+});
+
+// ── Search ──
+document.getElementById('search-input').addEventListener('input',e=>handleSearch(e.target.value));
+
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const countEl = document.getElementById('search-count');
+  const listEl = document.getElementById('search-results-list');
+
+  if(!searchQuery) {
+    searchMatches=[];
+    countEl.style.display='none';
+    listEl.innerHTML='<div style="color:var(--text3);text-align:center;padding:20px 0;font-size:12px">상단 검색창에 입력하세요</div>';
+    return;
+  }
+
+  switchTab('search');
+  searchMatches = G.nodes
+    .filter(n=>n.label.toLowerCase().includes(searchQuery)||n.desc?.toLowerCase().includes(searchQuery))
+    .map(n=>n.id);
+
+  countEl.style.display = searchMatches.length ? 'block' : 'none';
+  countEl.textContent = searchMatches.length + '개';
+
+  if(!searchMatches.length) {
+    listEl.innerHTML='<div style="color:var(--text3);text-align:center;padding:20px 0;font-size:12px">검색 결과 없음</div>';
+    return;
+  }
+
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  listEl.innerHTML = searchMatches.map(id=>{
+    const n=G.nodes.find(x=>x.id===id);
+    const hl=n.label.replace(new RegExp(searchQuery,'gi'),m=>`<span class="sr-match">${m}</span>`);
+    return `<div class="sr-item" onclick="focusNode('${n.id}')">
+      <div class="sr-label">${hl}</div>
+      <div class="sr-type" style="color:${COL[n.type]||'#888'}">${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function focusNode(id) {
+  const nd=G.nodes.find(n=>n.id===id);
+  if(!nd) return;
+  selectNode(nd);
+  // pan to node
+  const W=canvas.width,H=canvas.height;
+  camera.x=W/2-nd.x*camera.s;
+  camera.y=H/2-nd.y*camera.s;
+}
+
+// ── Context menu ──
+function showCtxMenu(x,y) {
+  ctxMenu.style.display='block';
+  const r=ctxMenu.getBoundingClientRect();
+  ctxMenu.style.left=(x+r.width>window.innerWidth?x-r.width:x)+'px';
+  ctxMenu.style.top=(y+120>window.innerHeight?y-120:y)+'px';
+}
+function hideCtxMenu() { ctxMenu.style.display='none'; }
+function focusSelected() {
+  hideCtxMenu();
+  if(selected) { selectNode(selected); switchTab('detail'); }
+}
+
+// ── Delete ──
+function confirmDelete() {
+  hideCtxMenu();
+  if(!selected) return;
+  pendingDelete=selected;
+  const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;
+  document.getElementById('modal-msg').textContent=
+    `"${selected.label}" 노드와 연결된 엣지 ${connCount}개가 함께 삭제됩니다.`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  pendingDelete=null;
+}
+
+function executeDelete() {
+  if(!pendingDelete) return;
+  const id=pendingDelete.id;
+  G.nodes=G.nodes.filter(n=>n.id!==id);
+  G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);
+  if(selected&&selected.id===id) {
+    selected=null;
+    document.getElementById('no-sel').style.display='block';
+    document.getElementById('det').style.display='none';
+    document.getElementById('det').innerHTML='';
+  }
+  pendingDelete=null;
+  closeModal();
+  updateStats();
+  updateEventList();
+  updateSharedList();
+  updateEmpty();
+  handleSearch(searchQuery);
+  hasChanges=true;
+  document.getElementById('save-btn').classList.add('visible');
+  setStatus(`노드 삭제됨 · 노드 ${G.nodes.length}개`);
+  startSim(.4);
+}
+
+// ── Save (export updated JS) ──
+function saveChanges() {
+  const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),created:new Date().toISOString().slice(0,10)}};
+  const jsContent = "window.DATA = " + JSON.stringify(out,null,2) + ";";
+  const blob=new Blob([jsContent],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  
+  // 불러온 스크립트의 이름을 그대로 저장 파일명으로 사용
+  const scriptName = document.getElementById('data-script').getAttribute('src');
+  const a=document.createElement('a');
+  a.href=url; a.download=scriptName; a.click();
+  
+  URL.revokeObjectURL(url);
+  hasChanges=false;
+  document.getElementById('save-btn').classList.remove('visible');
+  setStatus('저장 완료 · ' + scriptName + ' 다운로드됨');
+}
+
+// ── Node select ──
+function selectNode(nd) {
+  selected=nd; switchTab('detail');
+  document.getElementById('no-sel').style.display='none';
+  const det=document.getElementById('det');
+  det.style.display='block';
+  const col=COL[nd.type]||'#888';
+  const colL=nd.type==='event'?'#a99af5':nd.type==='cause'?'#f0b478':'#6dd4a0';
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  const links=G.edges.filter(e=>e.from===nd.id||e.to===nd.id)
+    .map(e=>{const oid=e.from===nd.id?e.to:e.from;return G.nodes.find(n=>n.id===oid);})
+    .filter(Boolean);
+
+  // Show key hint
+  const kh=document.getElementById('key-hint');
+  kh.classList.add('show');
+  setTimeout(()=>kh.classList.remove('show'),2500);
+
+  det.innerHTML=`
+    <span class="d-badge" style="background:${col}22;color:${colL}">${tm[nd.type]||nd.type}${nd.depth?` <span class="dep ${nd.depth}">${nd.depth}</span>`:''}</span>
+    <div class="d-title">${nd.label}</div>
+    <div class="d-desc">${nd.desc||'설명 없음'}</div>
+    ${links.length?`<div class="d-links-title">연결된 노드 (${links.length})</div><div>${links.map(l=>`<span class="chip" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}</div>`:''}<button class="del-btn" onclick="confirmDelete()">🗑 이 노드 삭제</button>
+  `;
+}
+
+function selectNodeById(id){const nd=G.nodes.find(n=>n.id===id);if(nd)selectNode(nd);}
+
+// ── UI ──
+function switchTab(t) {
+  ['info','detail','search'].forEach(x=>{
+    document.getElementById('tab-'+x).style.display=x===t?'block':'none';
+  });
+  document.querySelectorAll('.stab').forEach((el,i)=>{
+    el.classList.toggle('active',['info','detail','search'][i]===t);
+  });
+}
+
+function updateEventList() {
+  const events=G.nodes.filter(n=>n.type==='event');
+  const el=document.getElementById('event-list');
+  el.innerHTML=events.map(ev=>`
+    <div onclick="selectNodeById('${ev.id}');switchTab('detail')" style="cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);margin-bottom:6px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--event)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:12px;font-weight:500;color:var(--event-l);margin-bottom:2px">${ev.label}</div>
+      <div style="font-size:11px;color:var(--text3)">${G.edges.filter(e=>e.from===ev.id||e.to===ev.id).length}개 연결</div>
+    </div>
+  `).join('');
+}
+
+function updateSharedList() {
+  const shared=G.edges.filter(e=>e.shared&&e.label);
+  const el=document.getElementById('shared-list');
+  if(!shared.length){el.textContent='아직 교차 연결이 없습니다';return;}
+  el.innerHTML=shared.map(e=>{
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    return a&&b?`<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:11px"><span style="color:var(--cause-l)">${a.label}</span> ↔ <span style="color:var(--effect-l)">${b.label}</span>${e.label?`<div style="color:var(--text3);font-size:10px;margin-top:2px">${e.label}</div>`:''}`:'';
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('hstats').textContent=`노드 ${G.nodes.length} · 연결 ${G.edges.length}`;
+}
+function updateEmpty() {
+  document.getElementById('empty').style.display=G.nodes.length?'none':'flex';
+}
+function setStatus(msg) {
+  document.getElementById('status').textContent=msg;
+}
+function fitView() {
+  if(!G.nodes.length)return;
+  const xs=G.nodes.map(n=>n.x),ys=G.nodes.map(n=>n.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const pad=60;
+  camera.s=Math.min((canvas.width-pad*2)/Math.max(maxX-minX,1),(canvas.height-pad*2)/Math.max(maxY-minY,1),1.8);
+  camera.x=pad-minX*camera.s+((canvas.width-pad*2)-(maxX-minX)*camera.s)/2;
+  camera.y=pad-minY*camera.s+((canvas.height-pad*2)-(maxY-minY)*camera.s)/2;
+}
+function zoom(f) {
+  const cx=canvas.width/2,cy=canvas.height/2;
+  camera.x=cx-(cx-camera.x)*f; camera.y=cy-(cy-camera.y)*f;
+  camera.s=Math.max(.15,Math.min(4,camera.s*f));
+}
+function toggleLabels(){showL=!showL;}
+function exportJSON() {
+  const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='knowledge_graph_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Resize ──
+function resize() {
+  const w=document.getElementById('gw');
+  canvas.width=w.clientWidth; canvas.height=w.clientHeight;
+}
+window.addEventListener('resize',()=>{resize();startSim(.2);});
+
+// ── Init ──
+resize();
+loadData();
+if(!raf)loop();
+watchInterval=setInterval(checkForUpdates,4000);
+</script>
+</body>
+</html>

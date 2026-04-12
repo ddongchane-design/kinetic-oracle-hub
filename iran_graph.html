@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BMNR 그래프 (V2)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "background": "#0b1326", "error": "#ffb4ab", "primary-fixed": "#f9d8ff", "tertiary": "#66dd8b",
+        "surface-container-high": "#222a3d", "surface-variant": "#2d3449", "outline": "#9a8c9b",
+        "secondary-fixed": "#ffdfa0", "surface-container-lowest": "#060e20", "surface-container": "#171f33",
+        "surface-container-low": "#131b2e", "on-background": "#dae2fd", "surface-bright": "#31394d",
+        "on-primary": "#520070", "on-surface-variant": "#d1c2d2", "surface": "#0b1326", "on-surface": "#dae2fd",
+        "primary": "#edb1ff", "secondary": "#ffe2ab", "inverse-surface": "#dae2fd"
+      },
+      "fontFamily": { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] }
+    }
+  }
+};
+</script>
+<style>
+body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b1326; color: #dae2fd; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+#gc { width:100%; height:100%; display:block; cursor:grab; outline:none; }
+#gc:active { cursor:grabbing; }
+
+#tip{position:absolute;background:rgba(23,31,51,0.95);border:1px solid rgba(154,140,155,0.2);border-radius:10px;padding:10px 13px;font-size:12px;max-width:220px;pointer-events:none;display:none;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+#tip .tt{font-weight:600;color:#dae2fd;margin-bottom:3px;font-size:13px;font-family:'Noto Sans KR'}
+#tip .tc{font-size:10px;margin-bottom:5px;font-weight:600}
+#tip .td{color:#9a8c9b;line-height:1.5;font-size:11px;font-family:'Noto Sans KR'}
+
+#ctx-menu{position:fixed;background:#171f33;border:1px solid rgba(154,140,155,0.2);border-radius:10px;padding:6px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;min-width:140px;color:#dae2fd}
+.ctx-item{padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:8px}
+.ctx-item:hover{background:#2d3449}
+.ctx-item.danger{color:#ffb4ab}
+.ctx-item.danger:hover{background:rgba(255,180,171,0.1)}
+
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#modal-overlay.show{display:flex}
+#modal{background:#171f33;border:1px solid rgba(154,140,155,0.2);border-radius:14px;padding:24px;max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.7);color:#dae2fd}
+#modal h3{font-size:15px;margin-bottom:8px;font-family:'Noto Sans KR'}
+#modal p{font-size:12px;color:#9a8c9b;line-height:1.7;margin-bottom:20px;font-family:'Noto Sans KR'}
+.modal-btns{display:flex;gap:8px}
+.modal-btns button{flex:1;padding:8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR';border:1px solid rgba(154,140,155,0.3);background:transparent;color:#9a8c9b;transition:all .15s}
+.modal-btns button:hover{background:#2d3449;color:#dae2fd}
+.modal-btns button.confirm{border-color:rgba(255,180,171,0.4);color:#ffb4ab}
+.modal-btns button.confirm:hover{background:rgba(255,180,171,0.1)}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:rgba(154,140,155,0.2);border-radius:3px}
+</style>
+</head>
+<body class="overflow-hidden">
+
+<header class="fixed top-0 w-full z-50 bg-[#0b1326]/90 backdrop-blur-md shadow-[0_48px_48px_rgba(218,226,253,0.06)] flex justify-between items-center px-8 h-16 w-full font-['Manrope'] tracking-tight">
+  <div class="flex items-center gap-8">
+    <div class="flex items-center text-2xl font-bold tracking-tighter select-none">
+      <a href="index.html" class="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer" title="홈(허브)으로 돌아가기">
+        <span class="material-symbols-outlined text-[26px]">home</span>
+        <span class="text-xl">Hub</span>
+      </a>
+      <span class="text-slate-600 font-light mx-2.5">/</span>
+      <span class="text-[#edb1ff] cursor-pointer" onclick="loadData()" title="그래프 새로고침">이란 전쟁 분석</span>
+    </div>
+    <nav class="hidden md:flex gap-6 items-center">
+      <button class="text-[#edb1ff] border-b-2 border-[#edb1ff] pb-1 font-bold tracking-wide transition-colors">Explorer</button>
+    </nav>
+  </div>
+  <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 bg-surface-container-low/80 p-1 rounded-full border border-outline-variant/20 shadow-sm" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#ffe2ab]/10 hover:text-[#ffe2ab] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#edb1ff]/10 hover:text-[#edb1ff] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#66dd8b]/10 hover:text-[#66dd8b] transition-all">파급 효과</button>
+  </div>
+  <div class="flex items-center gap-6">
+    <div class="hidden lg:flex items-center gap-4 px-4 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/15 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+        <span class="on-surface-variant font-mono text-xs" id="hstats-nodes">Nodes: 0</span>
+      </div>
+      <div class="w-px h-3 bg-outline-variant/30"></div>
+      <div class="flex items-center gap-2">
+        <span class="on-surface-variant font-mono text-xs" id="hstats-edges">Edges: 0</span>
+      </div>
+    </div>
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-50">search</span>
+      <input id="search-input" class="bg-surface-container-lowest border border-outline-variant/20 rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-primary/50 text-on-surface transition-all" placeholder="Search knowledge graph..." type="text"/>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="save-btn" onclick="saveChanges()" class="active:scale-95 duration-200 text-tertiary font-bold text-sm hidden px-3 py-1.5 bg-tertiary/10 rounded-full border border-tertiary/30 hover:bg-tertiary/20 transition-all font-['Noto Sans KR']">
+        💾 저장하기
+      </button>
+      <button onclick="exportJSON()" class="active:scale-95 duration-200 text-[#dae2fd] opacity-70 hover:text-[#edb1ff] ml-2" title="JSON 내보내기">
+        <span class="material-symbols-outlined">download</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="relative w-full h-screen bg-surface pt-16 flex overflow-hidden">
+  <div class="flex-1 relative h-full order-2">
+    <canvas id="gc"></canvas>
+    
+    <div class="absolute bottom-6 left-6 z-40 flex items-center gap-2 p-2 rounded-xl bg-surface-container-high/40 backdrop-blur-xl border border-outline-variant/15 shadow-2xl">
+      <button onclick="zoom(1.2)" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Zoom In">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+      <div class="w-px h-4 bg-outline-variant/30"></div>
+      <button onclick="zoom(0.8)" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Zoom Out">
+        <span class="material-symbols-outlined">remove</span>
+      </button>
+      <div class="w-px h-4 bg-outline-variant/30"></div>
+      <button onclick="fitView()" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Fit to Screen">
+        <span class="material-symbols-outlined">center_focus_strong</span>
+      </button>
+      <button onclick="toggleLabels()" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Toggle Labels">
+        <span class="material-symbols-outlined">label</span>
+      </button>
+    </div>
+
+    <div class="absolute bottom-6 right-6 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/15 shadow-lg">
+      <span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(102,221,139,0.6)]"></span>
+      <span id="status" class="text-xs font-semibold tracking-widest uppercase text-on-surface-variant opacity-80" style="font-family:'Noto Sans KR'">System Ready</span>
+    </div>
+  </div>
+
+  <aside class="w-80 flex-shrink-0 h-full bg-[#131b2e]/60 backdrop-blur-3xl border-r border-[#4e4350]/20 flex flex-col p-5 gap-5 z-40 font-['Inter'] relative order-1">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-lg overflow-hidden bg-primary/20 border border-primary/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-2xl">account_tree</span>
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-[#dae2fd]">Inspector</h3>
+        <p class="text-[10px] uppercase tracking-wider text-[#dae2fd]/60">BMNR Node Explorer</p>
+      </div>
+    </div>
+
+    <div class="flex gap-2 p-1 bg-surface-container-low rounded-lg flex-shrink-0" style="font-family:'Noto Sans KR'">
+      <button id="tab-btn-detail" onclick="switchTab('detail')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-primary/20 text-primary">상세 정보</button>
+      <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright">구조도</button>
+      <button id="tab-btn-search" onclick="switchTab('search')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright">노드 검색</button>
+    </div>
+
+    <div class="flex-grow flex flex-col overflow-y-auto overflow-x-hidden pt-2" style="font-family:'Noto Sans KR'">
+      <div id="tab-detail" class="flex flex-col h-full">
+        <div id="no-sel" class="flex-1 flex flex-col items-center justify-center opacity-40 text-center gap-3 h-full">
+          <span class="material-symbols-outlined text-4xl">touch_app</span>
+          <p class="text-sm">화면에서 노드를 클릭하면<br>자세한 정보가 나타납니다.</p>
+        </div>
+        <div id="det" class="hidden flex-col gap-4 h-full pb-4"></div>
+      </div>
+      <div id="tab-search" class="hidden flex-col h-full">
+         <div id="search-results-list" class="flex flex-col gap-2">
+           <div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>
+         </div>
+      </div>
+      <div id="tab-list" class="hidden flex-col h-full gap-4 pb-4 px-1"></div>
+    </div>
+  </aside>
+
+  <div id="tip"><div class="tt"></div><div class="tc"></div><div class="td"></div></div>
+  <div id="ctx-menu">
+    <div class="ctx-item" onclick="focusSelected()"><span class="material-symbols-outlined" style="font-size:16px">visibility</span> 상세 보기</div>
+    <div class="ctx-item danger" onclick="confirmDelete()"><span class="material-symbols-outlined" style="font-size:16px">delete</span> 노드 삭제</div>
+  </div>
+  <div id="modal-overlay">
+    <div id="modal">
+      <h3>노드를 삭제할까요?</h3>
+      <p id="modal-msg">이 노드와 연결된 엣지가 모두 삭제됩니다.</p>
+      <div class="modal-btns">
+        <button onclick="closeModal()">취소</button>
+        <button class="confirm" onclick="executeDelete()">삭제</button>
+      </div>
+    </div>
+  </div>
+  <!-- Insight Panel -->
+  <div id="insight-panel" class="w-96 flex-shrink-0 h-full bg-surface-container/95 backdrop-blur-2xl border-l border-outline-variant/20 z-40 flex flex-col p-6 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
+    <div class="flex items-center justify-between mb-6 border-b border-outline-variant/10 pb-4">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">history_edu</span>
+        <h2 class="text-lg font-bold text-on-surface">인사이트 로그</h2>
+      </div>
+    </div>
+    <div id="insight-panel-content" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-5 pb-10">
+      <!-- Insights injected here -->
+    </div>
+  </div>
+</main>
+<script src="iran_data.js" id="data-script"></script>
+<script src="insights_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+function renderInsights() {
+  const container = document.getElementById('insight-panel-content');
+  if(!window.INSIGHTS_DB) {
+    container.innerHTML = '<div class="text-sm opacity-50 text-center py-10">인사이트 데이터베이스가 없습니다.</div>';
+    return;
+  }
+  const filtered = window.INSIGHTS_DB.filter(ins => ins.targetGraph === 'iran_graph.html');
+  if(filtered.length === 0) {
+    container.innerHTML = '<div class="text-sm opacity-50 text-center py-10">이 워크스페이스에 등록된 분석글이 없습니다.</div>';
+    return;
+  }
+  let html = '';
+  filtered.forEach(ins => {
+    const pContent = marked.parse(ins.content);
+    let onClickAttr = ins.targetNodes && ins.targetNodes.length > 0 
+      ? `onclick="focusNode('${ins.targetNodes[0]}'); if(window.innerWidth<768) toggleInsightPanel();"`
+      : '';
+    let interactClass = ins.targetNodes && ins.targetNodes.length > 0 
+      ? 'cursor-pointer hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200' 
+      : '';
+      
+    html += `
+      <div class="bg-surface/60 border border-outline-variant/20 rounded-2xl p-5 shadow-md ${interactClass}" ${onClickAttr}>
+        <div class="flex justify-between items-start mb-3">
+          <div class="text-[11px] font-mono opacity-50 bg-black/20 inline-block px-2 py-0.5 rounded-md">${ins.date}</div>
+          ${ins.targetNodes ? `<span class="material-symbols-outlined text-[16px] text-primary/50">touch_app</span>` : ''}
+        </div>
+        <h3 class="font-bold text-on-surface text-[15px] mb-2 leading-snug">${ins.title}</h3>
+        <p class="text-[12px] text-secondary font-semibold mb-4 border-l-2 border-secondary/40 pl-2 opacity-90">${ins.summary}</p>
+        <div class="prose prose-invert prose-sm max-w-none text-[13px] leading-relaxed text-on-surface-variant">
+          ${pContent}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+renderInsights();
+
+// ==================== [JS LOGIC] ====================
+const COL={ event: '#edb1ff', cause: '#ffe2ab', effect: '#66dd8b' };
+const RAD={ event:24, cause:16, effect:14 };
+
+let G={nodes:[],edges:[]};
+let camera={x:0,y:0,s:1};
+let drag=null,pan=null,hovered=null,selected=null,showL=true;
+let raf=null,alpha=0;
+let searchQuery='';
+let searchMatches=[];
+let pendingDelete=null;
+let hasChanges=false;
+let activeFilter=null;
+
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const tip=document.getElementById('tip');
+const ctxMenu=document.getElementById('ctx-menu');
+
+async function loadData() {
+  try {
+    setStatus('Loading data...');
+    if (window.DATA) G = JSON.parse(JSON.stringify(window.DATA));
+    else G = {nodes:[], edges:[]};
+    G.nodes.forEach(n => { n.vx=n.vx||0; n.vy=n.vy||0; if(n.x==null){n.x=null;n.y=null;} });
+    initPositions();
+    updateStats();
+    updateListTab();
+    setStatus('Ready · ' + new Date().toLocaleTimeString('ko-KR'));
+    hasChanges = false;
+    document.getElementById('save-btn').style.display = 'none';
+    startSim(1.0);
+    setTimeout(fitView, 500);
+  } catch(e) {
+    setStatus('Error: ' + e.message);
+  }
+}
+
+function initPositions() {
+  const W = canvas.width || Math.max(800, window.innerWidth-320); 
+  const H = canvas.height || window.innerHeight;
+  const events = G.nodes.filter(n => n.type === 'event');
+  const causes = G.nodes.filter(n => n.type === 'cause');
+  const effects = G.nodes.filter(n => n.type === 'effect');
+  events.forEach((n, i) => {
+    if (n.x == null) { n.x = W/2 + (i - (events.length-1)/2) * 200 + (Math.random()-.5)*40; n.y = H/2 + (Math.random()-.5)*60; }
+    n.vx=0; n.vy=0;
+  });
+  causes.forEach((n, i) => {
+    if (n.x == null) { n.x = W * 0.2 + (Math.random()-.5)*60; n.y = 100 + i * (H - 200) / Math.max(causes.length - 1, 1) + (Math.random()-.5)*30; }
+    n.vx=0; n.vy=0;
+  });
+  effects.forEach((n, i) => {
+    if (n.x == null) { n.x = W * 0.8 + (Math.random()-.5)*60; n.y = 100 + i * (H - 200) / Math.max(effects.length - 1, 1) + (Math.random()-.5)*30; }
+    n.vx=0; n.vy=0;
+  });
+}
+
+function startSim(a) { alpha = a; if (!raf) loop(); }
+function loop() {
+  if (alpha > 0.003) { tick(); alpha *= 0.965; }
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+
+function tick() {
+  G.nodes.forEach(n => { n.vx *= 0.76; n.vy *= 0.76; });
+  for (let i = 0; i < G.nodes.length; i++) {
+    for (let j = i+1; j < G.nodes.length; j++) {
+      const a = G.nodes[i], b = G.nodes[j];
+      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy)||1;
+      const f = -3000/(d*d)*alpha;
+      const fx = dx/d*f, fy = dy/d*f;
+      a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+    }
+  }
+  G.edges.forEach(e => {
+    const a = G.nodes.find(n=>n.id===e.from), b = G.nodes.find(n=>n.id===e.to);
+    if (!a||!b) return;
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    const tgt = e.shared ? 220 : 130;
+    const f = (d-tgt)*0.06*alpha;
+    const fx=dx/d*f, fy=dy/d*f;
+    a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+  });
+  const W=canvas.width, H=canvas.height;
+  G.nodes.forEach(n => { n.x=Math.max(28,Math.min(W-28,n.x+n.vx)); n.y=Math.max(28,Math.min(H-28,n.y+n.vy)); });
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save(); ctx.translate(camera.x,camera.y); ctx.scale(camera.s,camera.s);
+  const now = Date.now();
+
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const isConnSel = selected && (e.from===selected.id || e.to===selected.id);
+    const isConnFlt = activeFilter && (a.type===activeFilter || b.type===activeFilter);
+    const isConn = selected ? isConnSel : (activeFilter ? isConnFlt : false);
+    const fadeOut = selected ? !isConnSel : (activeFilter ? !isConnFlt : false);
+
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    
+    let grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    let ca = COL[a.type]||'#fff', cb = COL[b.type]||'#fff';
+    if(a.type==='effect' && a.sentiment==='neg') ca='#ffb4ab';
+    else if(a.type==='effect') ca='#66dd8b';
+    if(b.type==='effect' && b.sentiment==='neg') cb='#ffb4ab';
+    else if(b.type==='effect') cb='#66dd8b';
+    
+    let alpha = fadeOut ? '11' : (e.shared?'BB':'55');
+    if (isConn) alpha = 'FF';
+
+    grad.addColorStop(0, ca + alpha); grad.addColorStop(1, cb + alpha);
+    ctx.strokeStyle = grad; ctx.lineWidth = (isConn?2.5:(e.shared?1.5:0.8))/camera.s;
+    if(isConn) { ctx.shadowColor=cb; ctx.shadowBlur=12; }
+
+    ctx.setLineDash(e.shared?[4,4]:[]); ctx.stroke(); ctx.setLineDash([]); 
+    ctx.shadowBlur=0;
+
+    if(isConn && !e.shared) {
+      const t = (now % 1000) / 1000;
+      const px = a.x + (b.x-a.x)*t, py = a.y + (b.y-a.y)*t;
+      ctx.beginPath(); ctx.arc(px,py,3/camera.s,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(px,py,8/camera.s,0,Math.PI*2); ctx.fillStyle=cb+'99'; ctx.fill();
+    }
+
+    if(!e.shared) {
+      const ang=Math.atan2(b.y-a.y,b.x-a.x); const r=(RAD[b.type]||14)+3;
+      const tx=b.x-Math.cos(ang)*r, ty=b.y-Math.sin(ang)*r;
+      ctx.beginPath(); ctx.moveTo(tx,ty);
+      ctx.lineTo(tx-10*Math.cos(ang-.42),ty-10*Math.sin(ang-.42));
+      ctx.lineTo(tx-10*Math.cos(ang+.42),ty-10*Math.sin(ang+.42));
+      ctx.fillStyle=cb+(fadeOut?'11':(isConn?'FF':'88')); ctx.fill();
+    }
+    if(e.shared && e.label && showL && !fadeOut) {
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      ctx.font='10px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle='rgba(218,226,253,0.8)'; ctx.textAlign='center';
+      ctx.fillText(e.label, mx, my-6);
+    }
+  });
+
+  G.nodes.forEach(n => {
+    let r=RAD[n.type]||14;
+    const isH=hovered&&hovered.id===n.id, isS=selected&&selected.id===n.id;
+    const isMatch=searchQuery&&searchMatches.includes(n.id);
+    const isConnNodeSel = selected && (n.id===selected.id || G.edges.some(e=>(e.from===selected.id&&e.to===n.id)||(e.to===selected.id&&e.from===n.id)));
+    const isConnNodeFlt = activeFilter && (n.type===activeFilter || G.edges.some(e=> (e.from===n.id && G.nodes.find(o=>o.id===e.to)?.type===activeFilter) || (e.to===n.id && G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
+    const isConnNode = selected ? isConnNodeSel : (activeFilter ? isConnNodeFlt : false);
+    const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
+    
+    let col=COL[n.type]||'#888';
+    if(n.type==='effect') {
+      if(n.sentiment==='pos') col='#66dd8b';
+      else if(n.sentiment==='neg') col='#ffb4ab';
+    }
+
+    if(isMatch) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+16,0,Math.PI*2);
+      ctx.fillStyle=col+'1A'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+10,0,Math.PI*2);
+      ctx.strokeStyle=col+'88'; ctx.lineWidth=1.5/camera.s; ctx.stroke();
+    }
+    if(isH||isS) { r *= 1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+8,0,Math.PI*2); ctx.fillStyle=col+'22'; ctx.fill(); }
+    if(isS) {
+      r *= 1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+4,0,Math.PI*2);
+      ctx.strokeStyle=col; ctx.lineWidth=2/camera.s; ctx.stroke(); 
+    }
+
+    let grd = ctx.createRadialGradient(n.x, n.y, r*0.5, n.x, n.y, r*2);
+    grd.addColorStop(0, col); grd.addColorStop(1, col+'00');
+    ctx.beginPath(); ctx.arc(n.x,n.y,r*2,0,Math.PI*2);
+    ctx.fillStyle=grd; ctx.globalAlpha=fadeOutNode?0.05:0.2; ctx.fill(); ctx.globalAlpha=1;
+
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.globalAlpha=fadeOutNode?0.15:(isH||isS?1:.8); ctx.fill(); ctx.globalAlpha=1;
+    
+    ctx.beginPath(); ctx.arc(n.x, n.y, r*0.3, 0, Math.PI*2);
+    ctx.fillStyle='#0b1326'; ctx.globalAlpha=fadeOutNode?0.2:0.6; ctx.fill(); ctx.globalAlpha=1;
+
+    if(showL && !fadeOutNode) {
+      let lbl=n.label.length>12?n.label.slice(0,11)+'…':n.label;
+      if(n.type==='effect'){
+        if(n.sentiment==='pos') lbl = '▲ ' + lbl;
+        else if(n.sentiment==='neg') lbl = '▼ ' + lbl;
+      }
+      ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle=isH||isS ? '#fff' : 'rgba(218,226,253,0.85)';
+      ctx.textAlign='center'; ctx.fillText(lbl,n.x,n.y+r+14);
+    }
+  });
+  ctx.restore();
+}
+
+function nodeAt(x,y) {
+  const wx=(x-camera.x)/camera.s, wy=(y-camera.y)/camera.s;
+  for (let i = G.nodes.length - 1; i >= 0; i--) {
+      const n = G.nodes[i], r=(RAD[n.type]||14)+6;
+      if(Math.hypot(n.x-wx,n.y-wy)<r) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown',e=>{
+  if(e.button===2) return; hideCtxMenu();
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y};
+  else pan={sx:x,sy:y,cx:camera.x,cy:camera.y};
+});
+
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault(); const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y); if(nd) { selected=nd; showCtxMenu(e.clientX,e.clientY); }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag){drag.node.x=drag.nx+(x-drag.ox)/camera.s;drag.node.y=drag.ny+(y-drag.oy)/camera.s;return;}
+  if(pan){camera.x=pan.cx+(x-pan.sx);camera.y=pan.cy+(y-pan.sy);return;}
+  const nd=nodeAt(x,y); hovered=nd||null; canvas.style.cursor=nd?'pointer':'grab';
+  if(nd){
+    tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+14,window.innerWidth-230)+'px';
+    tip.style.top=Math.max(e.clientY+14,10)+'px';
+    tip.querySelector('.tt').textContent=nd.label;
+    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')+(nd.sentiment==='pos'?' (긍정)':nd.sentiment==='neg'?' (부정)':'')};
+    const tc=tip.querySelector('.tc'); tc.textContent=tm[nd.type]||''; 
+    let tCol=COL[nd.type]||'#888';
+    if(nd.type==='effect') tCol=(nd.sentiment==='pos')?'#66dd8b':(nd.sentiment==='neg'?'#ffb4ab':'#66dd8b');
+    tc.style.color=tCol; tip.querySelector('.td').textContent=nd.desc||'';
+  } else tip.style.display='none';
+});
+
+canvas.addEventListener('mouseup',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5){
+    const nd=nodeAt(x,y);if(nd)selectNode(nd);
+  } else if(pan&&Math.hypot(x-pan.sx,y-pan.sy)<5){
+    if(selected || activeFilter) {
+      if(activeFilter) toggleFilter(activeFilter);
+      selected = null;
+      document.getElementById('no-sel').classList.remove('hidden');
+      document.getElementById('det').classList.add('hidden');
+      fitView();
+    }
+  }
+  drag=null;pan=null;
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault(); const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const d=e.deltaY>0?.88:1.14;
+  camera.x=mx-(mx-camera.x)*d; camera.y=my-(my-camera.y)*d;
+  camera.s=Math.max(.15,Math.min(5,camera.s*d));
+},{passive:false});
+
+document.addEventListener('click',e=>{ if(!ctxMenu.contains(e.target)&&e.target!==canvas) hideCtxMenu(); });
+
+document.getElementById('search-input').addEventListener('input',e=>handleSearch(e.target.value));
+
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const listEl = document.getElementById('search-results-list');
+  if(!searchQuery) {
+    searchMatches=[]; listEl.innerHTML='<div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>'; return;
+  }
+  switchTab('search');
+  searchMatches = G.nodes.filter(n=>n.label.toLowerCase().includes(searchQuery)||n.desc?.toLowerCase().includes(searchQuery)).map(n=>n.id);
+  if(!searchMatches.length) {
+    listEl.innerHTML='<div class="text-center text-error opacity-70 text-xs py-10">검색 결과가 없습니다.</div>'; return;
+  }
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  listEl.innerHTML = searchMatches.map(id=>{
+    const n=G.nodes.find(x=>x.id===id);
+    const hl=n.label.replace(new RegExp(searchQuery,'gi'),m=>`<span class="text-primary font-bold">${m}</span>`);
+    const tCol = COL[n.type]||'#888';
+    return `<div class="p-3 rounded-lg bg-surface-bright/30 border border-outline-variant/20 mb-2 cursor-pointer hover:bg-surface-bright/60 hover:border-primary/50 transition-all" onclick="focusNode('${n.id}')">
+      <div class="text-sm font-semibold mb-1 text-on-surface">${hl}</div>
+      <div class="text-[10px] opacity-70 flex items-center gap-1" style="color:${tCol}">
+        <span class="w-1.5 h-1.5 rounded-full" style="background:${tCol}"></span> ${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function focusNode(id) {
+  const nd=G.nodes.find(n=>n.id===id); if(!nd) return; selectNode(nd);
+  camera.x=canvas.width/2-nd.x*camera.s - 150; camera.y=canvas.height/2-nd.y*camera.s;
+}
+
+function selectNode(nd) {
+  selected=nd; switchTab('detail');
+  document.getElementById('no-sel').classList.add('hidden');
+  const det=document.getElementById('det'); det.classList.remove('hidden'); det.classList.add('flex');
+
+  let col=COL[nd.type]||'#888';
+  let tTitle = nd.type==='event'?'핵심 사건':nd.type==='cause'?'발생 원인':'파급 효과';
+  if(nd.type==='effect'&&nd.sentiment==='pos') col='#66dd8b';
+  if(nd.type==='effect'&&nd.sentiment==='neg') { col='#ffb4ab'; tTitle='부정적 파급 효과'; }
+
+  const linksIn = G.edges.filter(e=>e.to===nd.id).map(e=>G.nodes.find(n=>n.id===e.from)).filter(Boolean);
+  const linksOut = G.edges.filter(e=>e.from===nd.id).map(e=>G.nodes.find(n=>n.id===e.to)).filter(Boolean);
+  
+  let tagsHTML = '';
+  if(nd.depth) tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border" style="border-color:${col}44;color:${col}">${nd.depth}</span>`;
+  if(nd.type==='effect') {
+    if(nd.sentiment==='pos') tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border border-tertiary/40 text-tertiary font-bold">+ 긍정적</span>`;
+    if(nd.sentiment==='neg') tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border border-error/40 text-error font-bold">- 리스크</span>`;
+  }
+
+  det.innerHTML = `
+    <div class="space-y-1">
+      <span class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2" style="color:${col}">
+        <span class="w-2 h-2 rounded-full animate-pulse" style="background:${col}"></span> ${tTitle}
+      </span>
+      <h2 class="font-headline font-bold text-lg text-on-surface leading-tight mt-1 mb-2">${nd.label}</h2>
+      <div class="flex gap-1 mb-3">${tagsHTML}</div>
+    </div>
+    
+    <div class="p-3 rounded-lg bg-surface-container/60 border border-outline-variant/10 shadow-inner">
+      <p class="text-on-surface-variant text-xs leading-relaxed opacity-90">${nd.desc||'설명이 없습니다.'}</p>
+    </div>
+
+    <div class="space-y-4 mt-2 flex-grow">
+      ${linksIn.length ? `
+      <div>
+        <span class="text-[10px] uppercase font-bold text-secondary tracking-widest block mb-2 opacity-80">이전 연결 (수신)</span>
+        <div class="flex flex-wrap gap-1.5">
+          ${linksIn.map(l=>`<span class="px-2 py-1 rounded-md bg-secondary/10 border border-secondary/20 text-[10px] text-secondary cursor-pointer hover:bg-secondary/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
+        </div>
+      </div>` : ''}
+      
+      ${linksOut.length ? `
+      <div>
+        <span class="text-[10px] uppercase font-bold text-tertiary tracking-widest block mb-2 opacity-80">이후 연결 (발신)</span>
+        <div class="flex flex-wrap gap-1.5">
+          ${linksOut.map(l=>`<span class="px-2 py-1 rounded-md bg-tertiary/10 border border-tertiary/20 text-[10px] text-tertiary cursor-pointer hover:bg-tertiary/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>
+
+    <button onclick="confirmDelete()" class="mt-auto w-full py-2.5 rounded-lg border border-error/30 text-error font-bold tracking-tight text-xs hover:bg-error/10 active:scale-95 duration-200 mt-6 flex justify-center items-center gap-1">
+      <span class="material-symbols-outlined text-[16px]">delete</span> 노드 삭제
+    </button>
+  `;
+}
+function selectNodeById(id){const nd=G.nodes.find(n=>n.id===id);if(nd)selectNode(nd);}
+
+function switchTab(t) {
+  document.getElementById('tab-detail').classList.toggle('hidden', t!=='detail');
+  document.getElementById('tab-detail').classList.toggle('flex', t==='detail');
+  document.getElementById('tab-search').classList.toggle('hidden', t!=='search');
+  document.getElementById('tab-search').classList.toggle('flex', t==='search');
+  document.getElementById('tab-list').classList.toggle('hidden', t!=='list');
+  document.getElementById('tab-list').classList.toggle('flex', t==='list');
+
+  const bd = document.getElementById('tab-btn-detail');
+  const bl = document.getElementById('tab-btn-list');
+  const bs = document.getElementById('tab-btn-search');
+  
+  [bd, bl, bs].forEach(b => b.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright/50');
+  
+  const activeBtn = t==='detail' ? bd : t==='list' ? bl : bs;
+  activeBtn.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-primary/20 text-primary';
+}
+
+function toggleFilter(t) {
+  if (activeFilter === t) activeFilter = null;
+  else activeFilter = t;
+
+  if (activeFilter) {
+    selected = null;
+    document.getElementById('no-sel').classList.remove('hidden');
+    document.getElementById('det').classList.add('hidden');
+  }
+
+  const btns = {
+    'cause': { id: 'flt-cause', c: '#ffe2ab' },
+    'event': { id: 'flt-event', c: '#edb1ff' },
+    'effect': { id: 'flt-effect', c: '#66dd8b' }
+  };
+
+  Object.keys(btns).forEach(k => {
+    const b = document.getElementById(btns[k].id);
+    if (!b) return;
+    if (k === activeFilter) {
+      b.style.backgroundColor = btns[k].c + '33';
+      b.style.color = btns[k].c;
+    } else {
+      b.style.backgroundColor = 'transparent';
+      b.style.color = '';
+    }
+  });
+}
+
+function showCtxMenu(x,y) {
+  ctxMenu.style.display='block'; ctxMenu.style.left=Math.min(x,window.innerWidth-150)+'px'; ctxMenu.style.top=Math.min(y,window.innerHeight-100)+'px';
+}
+function hideCtxMenu() { ctxMenu.style.display='none'; }
+function focusSelected() { hideCtxMenu(); if(selected) selectNode(selected); }
+
+function confirmDelete() {
+  hideCtxMenu(); if(!selected) return; pendingDelete=selected;
+  const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;
+  document.getElementById('modal-msg').textContent=`"${selected.label}" 관련 엣지 ${connCount}개가 함께 삭제됩니다.`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); pendingDelete=null; }
+
+function executeDelete() {
+  if(!pendingDelete) return; const id=pendingDelete.id;
+  G.nodes=G.nodes.filter(n=>n.id!==id); G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);
+  if(selected&&selected.id===id) { selected=null; document.getElementById('no-sel').classList.remove('hidden'); document.getElementById('det').classList.add('hidden'); }
+  pendingDelete=null; closeModal(); updateStats(); updateListTab(); handleSearch(searchQuery); hasChanges=true;
+  document.getElementById('save-btn').style.display='block'; setStatus(`Node deleted.`); startSim(.4);
+}
+
+function updateStats() {
+  document.getElementById('hstats-nodes').textContent=`Nodes: ${G.nodes.length}`;
+  document.getElementById('hstats-edges').textContent=`Edges: ${G.edges.length}`;
+}
+
+function updateListTab() {
+  const listEl = document.getElementById('tab-list');
+  const causes = G.nodes.filter(n=>n.type==='cause');
+  const events = G.nodes.filter(n=>n.type==='event');
+  const effects = G.nodes.filter(n=>n.type==='effect');
+
+  const renderCat = (title, items, color) => {
+    if(!items.length) return '';
+    return `
+      <div>
+        <div class="text-[11px] uppercase font-bold tracking-widest mb-3 flex items-center gap-2" style="color:${color}">
+          <span class="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_${color}88]" style="background:${color}"></span> ${title} <span class="opacity-50 text-[10px]">(${items.length})</span>
+        </div>
+        <div class="flex flex-col gap-2 pl-3 border-l pb-4" style="border-color:${color}33">
+          ${items.map(n => {
+            let label = n.label;
+            if(n.type==='effect') {
+              if(n.sentiment==='pos') label = '<span class="text-tertiary">▲</span> ' + label;
+              else if(n.sentiment==='neg') label = '<span class="text-error">▼</span> ' + label;
+            }
+            return `<div class="text-[13px] text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors leading-snug break-keep" onclick="focusNode('${n.id}')" title="${n.label}">${label}</div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  };
+
+  listEl.innerHTML = `
+    ${renderCat('발생 원인 (Cause)', causes, COL['cause'])}
+    ${renderCat('핵심 사건 (Event)', events, COL['event'])}
+    ${renderCat('파급 효과 (Effect)', effects, COL['effect'])}
+  `;
+}
+
+function setStatus(msg) { document.getElementById('status').textContent=msg; }
+function fitView() {
+  if(!G.nodes.length)return; const xs=G.nodes.map(n=>n.x),ys=G.nodes.map(n=>n.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys), pad=80;
+  const cw=canvas.width, ch=canvas.height;
+  camera.s=Math.min((cw-pad*2)/Math.max(maxX-minX,1),(ch-pad*2)/Math.max(maxY-minY,1),1.5);
+  camera.x=pad-minX*camera.s+((cw-pad*2)-(maxX-minX)*camera.s)/2; camera.y=pad-minY*camera.s+((ch-pad*2)-(maxY-minY)*camera.s)/2;
+}
+function zoom(f) { const cx=canvas.width/2,cy=canvas.height/2; camera.x=cx-(cx-camera.x)*f; camera.y=cy-(cy-camera.y)*f; camera.s=Math.max(.15,Math.min(5,camera.s*f)); }
+function toggleLabels(){showL=!showL;}
+
+function saveChanges() {
+  const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),created:new Date().toISOString().slice(0,10)}};
+  const jsContent = "window.DATA = " + JSON.stringify(out,null,2) + ";";
+  const blob=new Blob([jsContent],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  const scriptName = document.getElementById('data-script').getAttribute('src');
+  const a=document.createElement('a'); a.href=url; a.download=scriptName; a.click();
+  URL.revokeObjectURL(url); hasChanges=false; document.getElementById('save-btn').style.display='none';
+  setStatus('Saved -> ' + scriptName);
+}
+
+function exportJSON() {
+  const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='bmnr_graph_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url);
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.key==='Delete'||e.key==='Backspace')&&selected&&document.activeElement===document.body) { e.preventDefault(); confirmDelete(); }
+  if(e.key==='Escape') { closeModal(); hideCtxMenu(); if(searchQuery){ document.getElementById('search-input').value=''; handleSearch(''); } }
+  if((e.ctrlKey||e.metaKey)&&e.key==='f') { e.preventDefault(); document.getElementById('search-input').focus(); switchTab('search'); }
+});
+
+function resize() { canvas.width=canvas.parentElement.clientWidth; canvas.height=canvas.parentElement.clientHeight; }
+window.addEventListener('resize',()=>{resize();startSim(.2);});
+
+resize(); loadData(); if(!raf)loop();
+</script>
+</body>
+</html>
