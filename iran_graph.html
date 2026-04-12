@@ -212,7 +212,7 @@ function renderInsights() {
   filtered.forEach(ins => {
     const pContent = marked.parse(ins.content);
     let onClickAttr = ins.targetNodes && ins.targetNodes.length > 0 
-      ? `onclick="focusNode('${ins.targetNodes[0]}'); if(window.innerWidth<768) toggleInsightPanel();"`
+      ? `onclick="window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`
       : '';
     let interactClass = ins.targetNodes && ins.targetNodes.length > 0 
       ? 'cursor-pointer hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200' 
@@ -234,7 +234,7 @@ function renderInsights() {
   });
   container.innerHTML = html;
 }
-renderInsights();
+// renderInsights() is called after graph loads via loadData()
 
 // ==================== [JS LOGIC] ====================
 const COL={ event: '#edb1ff', cause: '#ffe2ab', effect: '#66dd8b' };
@@ -269,6 +269,8 @@ async function loadData() {
     document.getElementById('save-btn').style.display = 'none';
     startSim(1.0);
     setTimeout(fitView, 500);
+    window.focusNode = focusNode;
+    renderInsights();
   } catch(e) {
     setStatus('Error: ' + e.message);
   }
@@ -584,7 +586,12 @@ function handleSearch(q) {
 }
 function focusNode(id) {
   const nd=G.nodes.find(n=>n.id===id); if(!nd) return; selectNode(nd);
-  camera.x=canvas.width/2-nd.x*camera.s - 150; camera.y=canvas.height/2-nd.y*camera.s;
+  camera.s = Math.max(camera.s, 1.2);
+  camera.x=canvas.width/2-nd.x*camera.s; camera.y=canvas.height/2-nd.y*camera.s;
+  // scroll inspector into view on mobile
+  if(window.innerWidth < 1024) {
+    document.querySelector('aside')?.scrollIntoView({behavior:'smooth'});
+  }
 }
 
 function selectNode(nd) {
