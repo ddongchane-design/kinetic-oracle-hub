@@ -104,9 +104,9 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
   </div>
 </header>
 
-<main class="relative w-full h-screen bg-surface pt-16 flex overflow-hidden">
-  <div class="flex-1 relative h-full order-2">
-    <canvas id="gc"></canvas>
+<main class="relative w-full min-h-screen lg:h-screen bg-surface pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden">
+  <div class="w-full lg:w-auto flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
+    <canvas id="gc" class="touch-none"></canvas>
     
     <div class="absolute bottom-6 left-6 z-40 flex items-center gap-2 p-2 rounded-xl bg-surface-container-high/40 backdrop-blur-xl border border-outline-variant/15 shadow-2xl">
       <button onclick="zoom(1.2)" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Zoom In">
@@ -131,7 +131,7 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
     </div>
   </div>
 
-  <aside class="w-80 flex-shrink-0 h-full bg-[#131b2e]/60 backdrop-blur-3xl border-r border-[#4e4350]/20 flex flex-col p-5 gap-5 z-40 font-['Inter'] relative order-1">
+  <aside class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[50vh] bg-[#131b2e]/60 backdrop-blur-3xl lg:border-r border-b border-[#4e4350]/20 flex flex-col p-5 gap-5 z-40 font-['Inter'] relative order-2 lg:order-1">
     <div class="flex items-center gap-3 flex-shrink-0">
       <div class="w-10 h-10 rounded-lg overflow-hidden bg-primary/20 border border-primary/20 flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-2xl">account_tree</span>
@@ -181,7 +181,7 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
     </div>
   </div>
   <!-- Insight Panel -->
-  <div id="insight-panel" class="w-96 flex-shrink-0 h-full bg-surface-container/95 backdrop-blur-2xl border-l border-outline-variant/20 z-40 flex flex-col p-6 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
+  <div id="insight-panel" class="w-full lg:w-96 flex-shrink-0 h-auto lg:h-full min-h-[50vh] bg-surface-container/95 backdrop-blur-2xl lg:border-l border-t border-outline-variant/20 z-40 flex flex-col p-6 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
     <div class="flex items-center justify-between mb-6 border-b border-outline-variant/10 pb-4">
       <div class="flex items-center gap-2">
         <span class="material-symbols-outlined text-secondary">history_edu</span>
