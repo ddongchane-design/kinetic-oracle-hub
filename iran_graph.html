@@ -133,7 +133,10 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
       </button>
     </div>
 
-
+    <div class="absolute bottom-6 right-6 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/15 shadow-lg">
+      <span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(102,221,139,0.6)]"></span>
+      <span id="status" class="text-xs font-semibold tracking-widest uppercase text-on-surface-variant opacity-80" style="font-family:'Noto Sans KR'">System Ready</span>
+    </div>
   </div>
 
   <aside class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[50vh] bg-[#131b2e]/60 backdrop-blur-3xl lg:border-r border-b border-[#4e4350]/20 flex flex-col p-5 gap-5 z-40 font-['Inter'] relative order-2 lg:order-1">
@@ -269,7 +272,7 @@ async function loadData() {
     initPositions();
     updateStats();
     updateListTab();
-
+    setStatus('Ready · ' + new Date().toLocaleTimeString('ko-KR'));
     hasChanges = false;
     document.getElementById('save-btn').style.display = 'none';
     startSim(1.0);
