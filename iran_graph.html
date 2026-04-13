@@ -113,6 +113,12 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
 </header>
 
 <main class="relative w-full min-h-screen lg:h-screen bg-surface pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden">
+  <!-- 모바일 전용 필터 바 -->
+  <div class="flex md:hidden items-center justify-center gap-1 bg-surface-container-low/80 px-2 py-2 border-b border-outline-variant/15 flex-shrink-0" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#ffe2ab]/10 hover:text-[#ffe2ab] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#edb1ff]/10 hover:text-[#edb1ff] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#66dd8b]/10 hover:text-[#66dd8b] transition-all">파급 효과</button>
+  </div>
   <div class="w-full lg:w-auto lg:flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
     <canvas id="gc" class="touch-none"></canvas>
     
@@ -689,21 +695,23 @@ function toggleFilter(t) {
   }
 
   const btns = {
-    'cause': { id: 'flt-cause', c: '#ffe2ab' },
-    'event': { id: 'flt-event', c: '#edb1ff' },
-    'effect': { id: 'flt-effect', c: '#66dd8b' }
+    'cause': { ids: ['flt-cause', 'flt-cause-m'], c: '#ffe2ab' },
+    'event': { ids: ['flt-event', 'flt-event-m'], c: '#edb1ff' },
+    'effect': { ids: ['flt-effect', 'flt-effect-m'], c: '#66dd8b' }
   };
 
   Object.keys(btns).forEach(k => {
-    const b = document.getElementById(btns[k].id);
-    if (!b) return;
-    if (k === activeFilter) {
-      b.style.backgroundColor = btns[k].c + '33';
-      b.style.color = btns[k].c;
-    } else {
-      b.style.backgroundColor = 'transparent';
-      b.style.color = '';
-    }
+    btns[k].ids.forEach(id => {
+      const b = document.getElementById(id);
+      if (!b) return;
+      if (k === activeFilter) {
+        b.style.backgroundColor = btns[k].c + '33';
+        b.style.color = btns[k].c;
+      } else {
+        b.style.backgroundColor = 'transparent';
+        b.style.color = '';
+      }
+    });
   });
 }
 
