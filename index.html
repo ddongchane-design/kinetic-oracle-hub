@@ -79,8 +79,8 @@
     const WORKSPACES = [
       {
         url: "bmnr_graph.html",
-        date: "2026-04-12T11:12:00",
-        displayDate: "2026-04-12 11:12",
+        date: "2026-04-14T09:00:00",
+        displayDate: "2026-04-14 09:00",
         title: "BMNR 심층 분석",
         desc: "비트마인(Bitmine) 단기/장기 파급효과 및 이더리움 문샷 전략, 스테이블코인, 달러 패권 인과관계 분석 그래프",
         icon: "query_stats",
@@ -171,7 +171,8 @@
       const container = document.getElementById('insights-feed-container');
       if(window.INSIGHTS_DB && window.INSIGHTS_DB.length > 0) {
         let html = '';
-        window.INSIGHTS_DB.forEach(insight => {
+        const sortedInsights = [...window.INSIGHTS_DB].sort((a, b) => new Date(b.date) - new Date(a.date));
+        sortedInsights.forEach(insight => {
           const parsedContent = marked.parse(insight.content);
           
           html += `

@@ -10,7 +10,7 @@ window.INSIGHTS_DB = [
   },
   {
     "id": "ins_bmnr_004",
-    "date": "2026-04-13",
+    "date": "2026-04-14",
     "targetGraph": "bmnr_graph.html",
     "targetNodes": ["ev_eth_118b", "ev_b_1"],
     "title": "🚨 BMNR 4/13 업데이트: 총 자산 $11.8B · ETH 4.04% 달성",
@@ -19,7 +19,7 @@ window.INSIGHTS_DB = [
   },
   {
     "id": "ins_bmnr_003",
-    "date": "2026-04-13",
+    "date": "2026-04-14",
     "targetGraph": "bmnr_graph.html",
     "targetNodes": ["ev_mavan", "ef_staking_annual"],
     "title": "💎 MAVAN: 스테이킹 플라이휠의 심장부",
@@ -28,7 +28,7 @@ window.INSIGHTS_DB = [
   },
   {
     "id": "ins_bmnr_002",
-    "date": "2026-04-13",
+    "date": "2026-04-14",
     "targetGraph": "bmnr_graph.html",
     "targetNodes": ["ef_eth_war_hedge", "ca_b_1"],
     "title": "⚔️ 이란전쟁 발발 후 ETH +17.4% — 전시 헤지 자산 등극",
