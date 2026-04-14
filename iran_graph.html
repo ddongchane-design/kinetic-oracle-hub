@@ -74,7 +74,7 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
   <canvas id="star-canvas"></canvas>
 </div>
 
-<header class="fixed top-0 w-full z-50 bg-[#0b1326]/90 backdrop-blur-md shadow-[0_48px_48px_rgba(218,226,253,0.06)] flex justify-between items-center px-8 h-16 w-full font-['Manrope'] tracking-tight">
+<header class="fixed top-0 w-full z-50 bg-[#0b1326]/90 backdrop-blur-md shadow-[0_48px_48px_rgba(218,226,253,0.06)] flex justify-between items-center px-4 md:px-8 h-16 w-full font-['Manrope'] tracking-tight">
   <div class="flex items-center gap-8">
     <div class="flex items-center text-2xl font-bold tracking-tighter select-none">
       <a href="index.html" class="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer" title="홈(허브)으로 돌아가기">
@@ -104,7 +104,7 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
         <span class="on-surface-variant font-mono text-xs" id="hstats-edges">Edges: 0</span>
       </div>
     </div>
-    <div class="relative">
+    <div class="relative hidden md:flex">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-50">search</span>
       <input id="search-input" class="bg-surface-container-lowest border border-outline-variant/20 rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-primary/50 text-on-surface transition-all" placeholder="Search knowledge graph..." type="text"/>
     </div>
