@@ -133,6 +133,17 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       // 1. Render Workspace Grid (Sorted by Date)
+      // 카드 날짜를 해당 그래프의 최신 인사이트 날짜로 자동 업데이트
+      if (window.INSIGHTS_DB && window.INSIGHTS_DB.length > 0) {
+        WORKSPACES.forEach(w => {
+          const related = window.INSIGHTS_DB.filter(ins => ins.targetGraph === w.url);
+          if (related.length > 0) {
+            const latest = related.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
+            w.date = latest.date + 'T00:00:00';
+            w.displayDate = latest.date;
+          }
+        });
+      }
       const wGrid = document.getElementById('workspace-grid');
       WORKSPACES.sort((a,b) => new Date(b.date) - new Date(a.date));
       let wHtml = '';
