@@ -26,7 +26,16 @@ window.DATA = {
     { "id": "ef_b_2", "type": "effect", "label": "숏 스퀴즈 압박", "depth": "단기", "sentiment": "pos", "desc": "자사주 대량 매입으로 유통 물량이 마르면서, 공매도 세력을 압박해 단기 급등을 유발." },
 
     // ==========================================
-    // 4. 플라이휠 완성 및 잠재 리스크 (Result & Risk)
+    // 4. 신규 촉매 (2026-04-13 업데이트)
+    // ==========================================
+    { "id": "ca_genius", "type": "cause", "label": "GENIUS법안 + SEC Project Crypto", "desc": "2025년 금융 혁신의 빅뱅. 스테이블코인 규제 명확화 + SEC의 크립토 친화 전환으로 기관 자금의 합법적 유입 고속도로가 열림. 1971년 브레튼우즈 체제 붕괴 이후 최대의 금융 패러다임 전환으로 평가됨." },
+    { "id": "ev_mavan", "type": "event", "label": "MAVAN 기관 스테이킹 플랫폼 출시", "desc": "Made in America VAlidator Network. 원래 BMNR 자체 ETH 트레저리 전용으로 개발. 3,334,637 ETH(약 $7.4B) 스테이킹 운영 중. 향후 외부 기관·커스터디 업체로 서비스 확장 계획." },
+    { "id": "ev_eth_118b", "type": "event", "label": "총 자산 $11.8B & ETH 4.04% 달성", "desc": "2026년 4월 13일 기준: ETH 4,874,858개($10.75B) + 현금 $719M + ORBS지분 $850M. 전체 ETH 공급량 1억 2,070만개의 4.04%. '5%의 연금술' 목표의 81% 달성. ETH 트레저리 세계 1위." },
+    { "id": "ef_staking_annual", "type": "effect", "label": "연간 스테이킹 수익 $310M 잠재력", "depth": "중기", "sentiment": "pos", "desc": "현재 3,334,637 ETH 스테이킹 = 연환산 $212M 수익(수익률 2.89%). 보유 ETH 전량 스테이킹 시 연간 $310M 달성 가능. CESR 기준 2.73%. MAVAN 자체 인프라로 수수료 완전 내재화." },
+    { "id": "ef_eth_war_hedge", "type": "effect", "label": "이란전쟁 ETH 헤지 자산 입증", "depth": "단기", "sentiment": "pos", "desc": "이란전쟁 발발 이후 ETH +17.4% 상승. S&P500 대비 +1,830bp 초과수익. 금(Gold) 대비 +2,743bp 압도. 전시(戰時) 가치저장 수단으로 ETH의 위상 재확인. 이더리움 트레저리 전략의 유효성 증명." },
+
+    // ==========================================
+    // 5. 플라이휠 완성 및 잠재 리스크 (Result & Risk)
     // ==========================================
     { "id": "ef_r_1", "type": "effect", "label": "보상 100% 내재화", "depth": "중기", "sentiment": "pos", "desc": "자체 인프라를 통해 수수료 중간 유통을 제거, 스테이킹 이자 전액을 기업 순수익으로 온전히 흡수." },
     { "id": "ef_r_2", "type": "effect", "label": "블랙록 ETF 킬러", "depth": "장기", "sentiment": "pos", "desc": "수수료만 떼어가는 현물 ETF와 달리, 자체 이자(배당)를 끊임없이 생산해 기관 포트폴리오 1순위로 등극." },
@@ -57,13 +66,26 @@ window.DATA = {
     { "from": "ef_b_2", "to": "ef_r_3", "shared": true, "label": "mNAV 프리미엄 유지" },
     { "from": "ef_r_3", "to": "ef_r_2", "label": "배당 경쟁력 압도" },
 
-    // 5. 리스크 연결 (Critical Risk)
+    // 5. 신규 촉매 연결 (2026-04-13)
+    { "from": "ca_genius", "to": "ev_m_1", "label": "규제 명확성 부여" },
+    { "from": "ca_genius", "to": "ef_i_1", "shared": true, "label": "기관 유입 고속도로" },
+    { "from": "ca_b_2", "to": "ev_mavan", "label": "수수료 내재화 실행" },
+    { "from": "ev_mavan", "to": "ef_r_1", "label": "MAVAN 완전 내재화" },
+    { "from": "ev_mavan", "to": "ef_staking_annual", "label": "스테이킹 수익 극대화" },
+    { "from": "ca_b_1", "to": "ev_eth_118b", "label": "물량 4.04% 달성" },
+    { "from": "ev_b_1", "to": "ev_eth_118b", "shared": true, "label": "NYSE 업리스트 효과" },
+    { "from": "ev_eth_118b", "to": "ef_eth_war_hedge", "label": "전쟁 헤지 성과 확인" },
+    { "from": "ef_eth_war_hedge", "to": "ef_r_3", "shared": true, "label": "전시 헤지+플라이휠 수렴" },
+    { "from": "ef_staking_annual", "to": "ef_r_3", "shared": true, "label": "수익 복리 투입" },
+
+    // 6. 리스크 연결 (Critical Risk)
     { "from": "ef_b_1", "to": "ef_r_4", "shared": true, "label": "현금 소진의 양날의 검" },
     { "from": "ca_b_1", "to": "ef_r_4", "shared": false, "label": "단일 자산 의존 한계" }
   ],
   "meta": {
     "created": "2026-04-12",
-    "version": "3.0",
-    "description": "중구난방 노드 제거 및 4단계 핵심 플로우 선형화 완료"
+    "updated": "2026-04-14",
+    "version": "3.1",
+    "description": "4/13 보도자료 반영: GENIUS법안, MAVAN 출시, $11.8B 달성, 이란전쟁 ETH헤지 노드 추가"
   }
 };
