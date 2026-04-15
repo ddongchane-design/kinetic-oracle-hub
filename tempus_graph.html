@@ -21,12 +21,26 @@ tailwind.config = {
   theme: {
     extend: {
       "colors": {
-        "background": "#0b1326", "error": "#ffb4ab", "primary-fixed": "#f9d8ff", "tertiary": "#66dd8b",
-        "surface-container-high": "#222a3d", "surface-variant": "#2d3449", "outline": "#9a8c9b",
-        "secondary-fixed": "#ffdfa0", "surface-container-lowest": "#060e20", "surface-container": "#171f33",
-        "surface-container-low": "#131b2e", "on-background": "#dae2fd", "surface-bright": "#31394d",
-        "on-primary": "#520070", "on-surface-variant": "#d1c2d2", "surface": "#0b1326", "on-surface": "#dae2fd",
-        "primary": "#edb1ff", "secondary": "#ffe2ab", "inverse-surface": "#dae2fd"
+        "background":               "#050a08",
+        "surface":                  "#050a08",
+        "surface-container-lowest": "#030805",
+        "surface-container-low":    "#091510",
+        "surface-container":        "#0e1d18",
+        "surface-container-high":   "#142620",
+        "surface-bright":           "#1c3028",
+        "surface-variant":          "#172a22",
+        "outline":                  "#3a6b55",
+        "on-background":            "#c6ddd5",
+        "on-surface":               "#c6ddd5",
+        "on-surface-variant":       "#7aada0",
+        "inverse-surface":          "#c6ddd5",
+        "primary":                  "#f59e0b",
+        "on-primary":               "#3a1f00",
+        "primary-fixed":            "#fff3cd",
+        "secondary":                "#34d399",
+        "secondary-fixed":          "#cffae4",
+        "tertiary":                 "#60a5fa",
+        "error":                    "#f87171"
       },
       "fontFamily": { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] }
     }
@@ -34,163 +48,284 @@ tailwind.config = {
 };
 </script>
 <style>
-body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b1326; color: #dae2fd; }
-.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-#starfield { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-#starfield canvas { width: 100%; height: 100%; }
-#gc { width:100%; height:100%; display:block; cursor:grab; outline:none; }
-#gc:active { cursor:grabbing; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    background-color: #050a08;
+    color: #c6ddd5;
+  }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
 
-#tip{position:absolute;background:rgba(23,31,51,0.95);border:1px solid rgba(154,140,155,0.2);border-radius:10px;padding:10px 13px;font-size:12px;max-width:220px;pointer-events:none;display:none;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5);backdrop-filter:blur(8px)}
-#tip .tt{font-weight:600;color:#dae2fd;margin-bottom:3px;font-size:13px;font-family:'Noto Sans KR'}
-#tip .tc{font-size:10px;margin-bottom:5px;font-weight:600}
-#tip .td{color:#9a8c9b;line-height:1.5;font-size:11px;font-family:'Noto Sans KR'}
+  /* ── Starfield ── */
+  #starfield {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 65% 25%, rgba(245,158,11,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 15% 75%, rgba(52,211,153,0.05) 0%, transparent 50%);
+  }
+  #starfield canvas { width: 100%; height: 100%; }
 
-#ctx-menu{position:fixed;background:#171f33;border:1px solid rgba(154,140,155,0.2);border-radius:10px;padding:6px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;min-width:140px;color:#dae2fd}
-.ctx-item{padding:7px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:8px}
-.ctx-item:hover{background:#2d3449}
-.ctx-item.danger{color:#ffb4ab}
-.ctx-item.danger:hover{background:rgba(255,180,171,0.1)}
+  /* ── Canvas ── */
+  #gc { width:100%; height:100%; display:block; cursor:grab; outline:none; }
+  #gc:active { cursor:grabbing; }
 
-#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-#modal-overlay.show{display:flex}
-#modal{background:#171f33;border:1px solid rgba(154,140,155,0.2);border-radius:14px;padding:24px;max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.7);color:#dae2fd}
-#modal h3{font-size:15px;margin-bottom:8px;font-family:'Noto Sans KR'}
-#modal p{font-size:12px;color:#9a8c9b;line-height:1.7;margin-bottom:20px;font-family:'Noto Sans KR'}
-.modal-btns{display:flex;gap:8px}
-.modal-btns button{flex:1;padding:8px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR';border:1px solid rgba(154,140,155,0.3);background:transparent;color:#9a8c9b;transition:all .15s}
-.modal-btns button:hover{background:#2d3449;color:#dae2fd}
-.modal-btns button.confirm{border-color:rgba(255,180,171,0.4);color:#ffb4ab}
-.modal-btns button.confirm:hover{background:rgba(255,180,171,0.1)}
+  /* ── Tooltip ── */
+  #tip {
+    position: absolute;
+    background: rgba(9,21,16,0.97);
+    border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 12px;
+    max-width: 230px;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 0 30px rgba(245,158,11,0.12), 0 8px 24px rgba(0,0,0,.7);
+    backdrop-filter: blur(12px);
+  }
+  #tip .tt { font-weight: 700; color: #c6ddd5; margin-bottom: 3px; font-size: 13px; font-family:'Noto Sans KR'; }
+  #tip .tc { font-size: 10px; margin-bottom: 5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  #tip .td { color: #7aada0; line-height: 1.6; font-size: 11px; font-family:'Noto Sans KR'; }
 
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{background:rgba(154,140,155,0.2);border-radius:3px}
+  /* ── Context Menu ── */
+  #ctx-menu {
+    position: fixed;
+    background: #0e1d18;
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px;
+    padding: 6px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    display: none;
+    min-width: 140px;
+    color: #c6ddd5;
+  }
+  .ctx-item { padding:7px 12px; border-radius:6px; font-size:12px; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:8px; }
+  .ctx-item:hover { background: #172a22; }
+  .ctx-item.danger { color: #f87171; }
+  .ctx-item.danger:hover { background: rgba(248,113,113,.1); }
+
+  /* ── Modal ── */
+  #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
+  #modal-overlay.show { display:flex; }
+  #modal { background:#0e1d18; border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:24px; max-width:320px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.8); color:#c6ddd5; }
+  #modal h3 { font-size:15px; margin-bottom:8px; font-family:'Noto Sans KR'; }
+  #modal p { font-size:12px; color:#7aada0; line-height:1.7; margin-bottom:20px; font-family:'Noto Sans KR'; }
+  .modal-btns { display:flex; gap:8px; }
+  .modal-btns button { flex:1; padding:8px; border-radius:7px; font-size:12px; cursor:pointer; font-family:'Noto Sans KR'; border:1px solid rgba(58,107,85,0.4); background:transparent; color:#7aada0; transition:all .15s; }
+  .modal-btns button:hover { background:#172a22; color:#c6ddd5; }
+  .modal-btns button.confirm { border-color:rgba(248,113,113,.4); color:#f87171; }
+  .modal-btns button.confirm:hover { background:rgba(248,113,113,.1); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:rgba(245,158,11,0.2); border-radius:2px; }
+
+  /* ── Glow Animations ── */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+    50% { box-shadow: 0 0 20px rgba(245,158,11,0.8); }
+  }
+  .glow-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+  /* ── Header ── */
+  header {
+    background: rgba(5,10,8,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(245,158,11,0.1);
+    box-shadow: 0 4px 32px rgba(245,158,11,0.05);
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    background: rgba(9,21,16,0.85);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(245,158,11,0.08);
+  }
+
+  /* ── Insight Panel ── */
+  #insight-panel {
+    background: rgba(7,16,12,0.92);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(245,158,11,0.08);
+  }
+
+  /* ── Zoom controls ── */
+  .zoom-ctrl {
+    background: rgba(9,21,16,0.85);
+    border: 1px solid rgba(245,158,11,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+  }
+
+  /* ── Filter btn ── */
+  .flt-btn { transition: all .2s; }
+
+  /* ── Neon line ── */
+  .neon-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245,158,11,0.35), transparent);
+    margin: 4px 0;
+  }
 </style>
 </head>
-<body class="bg-surface text-white">
+<body>
 
 <!-- ── Starfield Background ── -->
 <div id="starfield">
   <canvas id="star-canvas"></canvas>
 </div>
 
-<header class="fixed top-0 w-full z-50 bg-[#0b1326]/90 backdrop-blur-md shadow-[0_48px_48px_rgba(218,226,253,0.06)] flex justify-between items-center px-4 md:px-8 h-16 w-full font-['Manrope'] tracking-tight">
-  <div class="flex items-center gap-8">
-    <div class="flex items-center text-2xl font-bold tracking-tighter select-none">
-      <a href="index.html" class="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer" title="홈(허브)으로 돌아가기">
-        <span class="material-symbols-outlined text-[26px]">home</span>
-        <span class="text-xl">Hub</span>
-      </a>
-      <span class="text-slate-600 font-light mx-2.5">/</span>
-      <span class="text-amber-400 cursor-pointer" onclick="loadData()" title="그래프 새로고침">Tempus AI</span>
-    </div>
-    <nav class="hidden md:flex gap-6 items-center">
-      <button class="text-amber-400 border-b-2 border-amber-400 pb-1 font-bold tracking-wide transition-colors">Explorer</button>
-    </nav>
-  </div>
-  <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 bg-surface-container-low/80 p-1 rounded-full border border-outline-variant/20 shadow-sm" style="font-family:'Noto Sans KR'">
-    <button onclick="toggleFilter('cause')" id="flt-cause" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#ffe2ab]/10 hover:text-[#ffe2ab] transition-all">발생 원인</button>
-    <button onclick="toggleFilter('event')" id="flt-event" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#edb1ff]/10 hover:text-[#edb1ff] transition-all">핵심 사건</button>
-    <button onclick="toggleFilter('effect')" id="flt-effect" class="px-5 py-1.5 rounded-full text-[13px] font-semibold text-on-surface-variant hover:bg-[#66dd8b]/10 hover:text-[#66dd8b] transition-all">파급 효과</button>
-  </div>
+<!-- ══════════════════  HEADER  ══════════════════ -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-16 font-['Manrope'] tracking-tight">
+  <!-- Left -->
   <div class="flex items-center gap-6">
-    <div class="hidden lg:flex items-center gap-4 px-4 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/15 text-sm">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span class="on-surface-variant font-mono text-xs" id="hstats-nodes">Nodes: 0</span>
+    <a href="index.html" class="flex items-center gap-1.5 text-[#7aada0] hover:text-[#f59e0b] transition-colors cursor-pointer" title="홈으로 돌아가기">
+      <span class="material-symbols-outlined text-[22px]">home</span>
+      <span class="text-sm font-bold">Hub</span>
+    </a>
+    <span class="text-[#3a6b55] font-light">/</span>
+    <div class="flex items-center gap-2">
+      <span class="text-lg font-bold text-[#f59e0b] cursor-pointer hover:text-[#fbbf24] transition-colors" onclick="loadData()" title="그래프 새로고침">
+        🧬 Tempus AI
+      </span>
+      <span class="text-[10px] font-mono text-[#f59e0b]/40 bg-[#f59e0b]/5 border border-[#f59e0b]/20 px-2 py-0.5 rounded-full tracking-widest">TEM</span>
+    </div>
+  </div>
+
+  <!-- Center: Filter Bar -->
+  <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 bg-[#091510]/80 p-1 rounded-full border border-[#f59e0b]/15 shadow-sm" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#7aada0] hover:bg-[#f59e0b]/10 hover:text-[#f59e0b] transition-all">
+      발생 원인
+    </button>
+    <button onclick="toggleFilter('event')" id="flt-event"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#7aada0] hover:bg-[#34d399]/10 hover:text-[#34d399] transition-all">
+      핵심 사건
+    </button>
+    <button onclick="toggleFilter('effect')" id="flt-effect"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#7aada0] hover:bg-[#60a5fa]/10 hover:text-[#60a5fa] transition-all">
+      파급 효과
+    </button>
+  </div>
+
+  <!-- Right -->
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#091510]/80 border border-[#f59e0b]/10 text-xs font-mono">
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#f59e0b] animate-pulse shadow-[0_0_6px_rgba(245,158,11,0.8)]"></span>
+        <span id="hstats-nodes" class="text-[#7aada0]">Nodes: 0</span>
       </div>
-      <div class="w-px h-3 bg-outline-variant/30"></div>
-      <div class="flex items-center gap-2">
-        <span class="on-surface-variant font-mono text-xs" id="hstats-edges">Edges: 0</span>
-      </div>
+      <div class="w-px h-3 bg-[#f59e0b]/20"></div>
+      <span id="hstats-edges" class="text-[#7aada0]">Edges: 0</span>
     </div>
     <div class="relative hidden md:flex">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-50">search</span>
-      <input id="search-input" class="bg-surface-container-lowest border border-outline-variant/20 rounded-full pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-amber-400/50 text-on-surface transition-all" placeholder="Search knowledge graph..." type="text"/>
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-40 text-[#f59e0b]">search</span>
+      <input id="search-input"
+        class="bg-[#091510]/90 border border-[#f59e0b]/15 rounded-full pl-9 pr-4 py-1.5 text-sm w-52 focus:ring-1 focus:ring-[#f59e0b]/40 text-[#c6ddd5] placeholder-[#7aada0]/40 transition-all outline-none"
+        placeholder="노드 검색..." type="text"/>
     </div>
-    <div class="flex items-center gap-3">
-      <button id="save-btn" onclick="saveChanges()" class="active:scale-95 duration-200 text-tertiary font-bold text-sm hidden px-3 py-1.5 bg-tertiary/10 rounded-full border border-tertiary/30 hover:bg-tertiary/20 transition-all font-['Noto Sans KR']">
+    <div class="flex items-center gap-2">
+      <button id="save-btn" onclick="saveChanges()"
+        class="hidden active:scale-95 duration-200 text-[#34d399] font-bold text-sm px-3 py-1.5 bg-[#34d399]/10 rounded-full border border-[#34d399]/30 hover:bg-[#34d399]/20 transition-all" style="font-family:'Noto Sans KR'">
         💾 저장하기
       </button>
-      <button onclick="exportJSON()" class="active:scale-95 duration-200 text-[#dae2fd] opacity-70 hover:text-amber-400 ml-2" title="JSON 내보내기">
-        <span class="material-symbols-outlined">download</span>
+      <button onclick="exportJSON()" class="active:scale-95 duration-200 text-[#7aada0] hover:text-[#f59e0b] transition-colors" title="JSON 내보내기">
+        <span class="material-symbols-outlined text-[20px]">download</span>
       </button>
     </div>
   </div>
 </header>
 
-<main class="relative w-full min-h-screen lg:h-screen bg-surface pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden">
-  <!-- 모바일 전용 필터 바 -->
-  <div class="flex md:hidden items-center justify-center gap-1 bg-surface-container-low/80 px-2 py-2 border-b border-outline-variant/15 flex-shrink-0" style="font-family:'Noto Sans KR'">
-    <button onclick="toggleFilter('cause')" id="flt-cause-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#ffe2ab]/10 hover:text-[#ffe2ab] transition-all">발생 원인</button>
-    <button onclick="toggleFilter('event')" id="flt-event-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#edb1ff]/10 hover:text-[#edb1ff] transition-all">핵심 사건</button>
-    <button onclick="toggleFilter('effect')" id="flt-effect-m" class="px-4 py-1.5 rounded-full text-[12px] font-semibold text-on-surface-variant hover:bg-[#66dd8b]/10 hover:text-[#66dd8b] transition-all">파급 효과</button>
+<!-- ══════════════════  MAIN  ══════════════════ -->
+<main class="relative w-full min-h-screen lg:h-screen bg-transparent pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden" style="z-index:1">
+
+  <!-- Mobile Filter Bar -->
+  <div class="flex md:hidden items-center justify-center gap-1 bg-[#091510]/90 px-2 py-2 border-b border-[#f59e0b]/10 flex-shrink-0" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#7aada0] hover:text-[#f59e0b] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#7aada0] hover:text-[#34d399] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#7aada0] hover:text-[#60a5fa] transition-all">파급 효과</button>
   </div>
+
+  <!-- ── Graph Canvas ── -->
   <div class="w-full lg:w-auto lg:flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
     <canvas id="gc" class="touch-none"></canvas>
 
-    <div class="absolute bottom-6 left-6 z-40 flex items-center gap-2 p-2 rounded-xl bg-surface-container-high/40 backdrop-blur-xl border border-outline-variant/15 shadow-2xl">
-      <button onclick="zoom(1.2)" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Zoom In">
-        <span class="material-symbols-outlined">add</span>
+    <!-- Zoom Controls -->
+    <div class="absolute bottom-6 left-6 z-40 flex items-center gap-1 p-1.5 zoom-ctrl shadow-2xl">
+      <button onclick="zoom(1.2)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3028] text-[#c6ddd5] transition-all" title="Zoom In">
+        <span class="material-symbols-outlined text-[18px]">add</span>
       </button>
-      <div class="w-px h-4 bg-outline-variant/30"></div>
-      <button onclick="zoom(0.8)" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Zoom Out">
-        <span class="material-symbols-outlined">remove</span>
+      <div class="w-px h-4 bg-[#f59e0b]/15"></div>
+      <button onclick="zoom(0.8)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3028] text-[#c6ddd5] transition-all" title="Zoom Out">
+        <span class="material-symbols-outlined text-[18px]">remove</span>
       </button>
-      <div class="w-px h-4 bg-outline-variant/30"></div>
-      <button onclick="fitView()" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Fit to Screen">
-        <span class="material-symbols-outlined">center_focus_strong</span>
+      <div class="w-px h-4 bg-[#f59e0b]/15"></div>
+      <button onclick="fitView()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3028] text-[#c6ddd5] transition-all" title="Fit">
+        <span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
       </button>
-      <button onclick="toggleLabels()" class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-bright text-on-surface transition-all" title="Toggle Labels">
-        <span class="material-symbols-outlined">label</span>
+      <button onclick="toggleLabels()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3028] text-[#c6ddd5] transition-all" title="Labels">
+        <span class="material-symbols-outlined text-[18px]">label</span>
       </button>
     </div>
 
-    <div class="absolute bottom-6 right-6 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-surface-container-low/80 backdrop-blur-md border border-outline-variant/15 shadow-lg" style="display:none">
-      <span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(102,221,139,0.6)]"></span>
-      <span id="status" class="text-xs font-semibold tracking-widest uppercase text-on-surface-variant opacity-80" style="font-family:'Noto Sans KR'">System Ready</span>
+    <div class="absolute bottom-6 right-6 z-40" style="display:none">
+      <span id="status" class="text-xs font-mono text-[#7aada0]">Ready</span>
     </div>
   </div>
 
-  <aside class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[50vh] bg-[#131b2e]/60 backdrop-blur-3xl lg:border-r border-b border-[#4e4350]/20 flex flex-col p-5 gap-5 z-40 font-['Inter'] relative order-2 lg:order-1">
+  <!-- ── Left Inspector Sidebar ── -->
+  <aside class="w-full lg:w-72 flex-shrink-0 h-auto lg:h-full min-h-[40vh] flex flex-col p-5 gap-4 z-40 order-2 lg:order-1">
+
     <div class="flex items-center gap-3 flex-shrink-0">
-      <div class="w-10 h-10 rounded-lg overflow-hidden bg-amber-500/20 border border-amber-400/20 flex items-center justify-center">
-        <span class="material-symbols-outlined text-amber-400 text-2xl">biotech</span>
+      <div class="w-10 h-10 rounded-xl overflow-hidden bg-[#f59e0b]/10 border border-[#f59e0b]/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[#f59e0b] text-xl">biotech</span>
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-[#dae2fd]">Inspector</h3>
-        <p class="text-[10px] uppercase tracking-wider text-[#dae2fd]/60">Tempus AI Node Explorer</p>
+        <h3 class="text-[15px] font-bold text-[#c6ddd5]">Inspector</h3>
+        <p class="text-[10px] uppercase tracking-wider text-[#7aada0]/60">Tempus AI Explorer</p>
       </div>
     </div>
 
-    <div class="flex gap-2 p-1 bg-surface-container-low rounded-lg flex-shrink-0" style="font-family:'Noto Sans KR'">
-      <button id="tab-btn-detail" onclick="switchTab('detail')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-amber-400/20 text-amber-400">상세 정보</button>
-      <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright">구조도</button>
-      <button id="tab-btn-search" onclick="switchTab('search')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright">노드 검색</button>
+    <div class="neon-line flex-shrink-0"></div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1.5 p-1 bg-[#091510]/80 rounded-lg flex-shrink-0 border border-[#f59e0b]/08" style="font-family:'Noto Sans KR'">
+      <button id="tab-btn-detail" onclick="switchTab('detail')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#f59e0b]/15 text-[#f59e0b]">상세 정보</button>
+      <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#7aada0] hover:bg-[#1c3028]">구조도</button>
+      <button id="tab-btn-search" onclick="switchTab('search')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#7aada0] hover:bg-[#1c3028]">검색</button>
     </div>
 
-    <div class="flex-grow flex flex-col overflow-y-auto overflow-x-hidden pt-2" style="font-family:'Noto Sans KR'">
+    <div class="flex-grow flex flex-col overflow-y-auto overflow-x-hidden" style="font-family:'Noto Sans KR'">
+      <!-- Detail Tab -->
       <div id="tab-detail" class="flex flex-col h-full">
-        <div id="no-sel" class="flex-1 flex flex-col items-center justify-center opacity-40 text-center gap-3 h-full">
-          <span class="material-symbols-outlined text-4xl">touch_app</span>
-          <p class="text-sm">화면에서 노드를 클릭하면<br>자세한 정보가 나타납니다.</p>
+        <div id="no-sel" class="flex-1 flex flex-col items-center justify-center opacity-30 text-center gap-4 h-full">
+          <div class="w-16 h-16 rounded-full border border-[#f59e0b]/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl text-[#f59e0b]">biotech</span>
+          </div>
+          <p class="text-sm text-[#7aada0]">노드를 클릭하면<br>상세 정보가 나타납니다</p>
         </div>
-        <div id="det" class="hidden flex-col gap-4 h-full pb-4"></div>
+        <div id="det" class="hidden flex-col gap-3 h-full pb-4"></div>
       </div>
+      <!-- Search Tab -->
       <div id="tab-search" class="hidden flex-col h-full">
-         <div id="search-results-list" class="flex flex-col gap-2">
-           <div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>
-         </div>
+        <div id="search-results-list" class="flex flex-col gap-2">
+          <div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>
+        </div>
       </div>
+      <!-- List Tab -->
       <div id="tab-list" class="hidden flex-col h-full gap-4 pb-4 px-1"></div>
     </div>
   </aside>
 
+  <!-- ── Tooltip ── -->
   <div id="tip"><div class="tt"></div><div class="tc"></div><div class="td"></div></div>
+  <!-- ── Context Menu ── -->
   <div id="ctx-menu">
     <div class="ctx-item" onclick="focusSelected()"><span class="material-symbols-outlined" style="font-size:16px">visibility</span> 상세 보기</div>
     <div class="ctx-item danger" onclick="confirmDelete()"><span class="material-symbols-outlined" style="font-size:16px">delete</span> 노드 삭제</div>
   </div>
+  <!-- ── Delete Modal ── -->
   <div id="modal-overlay">
     <div id="modal">
       <h3>노드를 삭제할까요?</h3>
@@ -201,606 +336,29 @@ body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: #0b13
       </div>
     </div>
   </div>
-  <!-- Insight Panel -->
-  <div id="insight-panel" class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[50vh] bg-surface-container/95 backdrop-blur-2xl lg:border-l border-t border-outline-variant/20 z-40 flex flex-col p-6 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
-    <div class="flex items-center justify-between mb-6 border-b border-outline-variant/10 pb-4">
+
+  <!-- ── Right Insight Panel ── -->
+  <div id="insight-panel" class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[40vh] z-40 flex flex-col p-5 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
+    <div class="flex items-center justify-between mb-5 pb-4 border-b border-[#f59e0b]/10">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-amber-400">history_edu</span>
-        <h2 class="text-lg font-bold text-on-surface">인사이트 로그</h2>
+        <span class="material-symbols-outlined text-[#f59e0b] text-[20px]">biotech</span>
+        <h2 class="text-[15px] font-bold text-[#c6ddd5]">Tempus 인사이트</h2>
       </div>
+      <span class="text-[10px] font-mono text-[#f59e0b]/40 bg-[#f59e0b]/5 border border-[#f59e0b]/15 px-2 py-0.5 rounded-full">LIVE</span>
     </div>
-    <div id="insight-panel-content" class="flex-1 overflow-y-auto pr-2 flex flex-col gap-5 pb-10">
-      <!-- Insights injected here -->
+    <div id="insight-panel-content" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 pb-6">
+      <!-- Insights injected by JS -->
     </div>
   </div>
 </main>
+
 <script src="tempus_data.js" id="data-script"></script>
 <script src="insights_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-function renderInsights() {
-  const container = document.getElementById('insight-panel-content');
-  if(!window.INSIGHTS_DB) {
-    container.innerHTML = '<div class="text-sm opacity-50 text-center py-10">인사이트 데이터베이스가 없습니다.</div>';
-    return;
-  }
-  const filtered = window.INSIGHTS_DB.filter(ins => ins.targetGraph === 'tempus_graph.html');
-  if(filtered.length === 0) {
-    container.innerHTML = '<div class="text-sm opacity-50 text-center py-10">이 워크스페이스에 등록된 분석글이 없습니다.</div>';
-    return;
-  }
-  let html = '';
-  filtered.forEach(ins => {
-    const pContent = marked.parse(ins.content);
-    let onClickAttr = ins.targetNodes && ins.targetNodes.length > 0
-      ? `onclick="gtag('event','insight_click',{insight_title:'${ins.title.replace(/'/g,'')}',workspace:'tempus_graph'}); window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`
-      : '';
-    let interactClass = ins.targetNodes && ins.targetNodes.length > 0
-      ? 'cursor-pointer hover:border-amber-400/50 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200'
-      : '';
-
-    html += `
-      <div class="bg-surface/60 border border-outline-variant/20 rounded-2xl p-5 shadow-md ${interactClass}" ${onClickAttr}>
-        <div class="flex justify-between items-start mb-3">
-          <div class="text-[11px] font-mono opacity-50 bg-black/20 inline-block px-2 py-0.5 rounded-md">${ins.date}</div>
-          ${ins.targetNodes ? `<span class="material-symbols-outlined text-[16px] text-amber-400/50">touch_app</span>` : ''}
-        </div>
-        <h3 class="font-bold text-on-surface text-[15px] mb-2 leading-snug">${ins.title}</h3>
-        <p class="text-[12px] text-secondary font-semibold mb-4 border-l-2 border-secondary/40 pl-2 opacity-90">${ins.summary}</p>
-        <div class="prose prose-invert prose-sm max-w-none text-[13px] leading-relaxed text-on-surface-variant">
-          ${pContent}
-        </div>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
-
-// ==================== [JS LOGIC] ====================
-const COL={ event: '#edb1ff', cause: '#ffe2ab', effect: '#66dd8b' };
-const RAD={ event:24, cause:16, effect:14 };
-
-let G={nodes:[],edges:[]};
-let camera={x:0,y:0,s:1};
-let drag=null,pan=null,hovered=null,selected=null,showL=true;
-let raf=null,alpha=0;
-let searchQuery='';
-let searchMatches=[];
-let pendingDelete=null;
-let hasChanges=false;
-let activeFilter=null;
-
-const canvas=document.getElementById('gc');
-const ctx=canvas.getContext('2d');
-const tip=document.getElementById('tip');
-const ctxMenu=document.getElementById('ctx-menu');
-
-async function loadData() {
-  try {
-    setStatus('Loading data...');
-    if (window.DATA) G = JSON.parse(JSON.stringify(window.DATA));
-    else G = {nodes:[], edges:[]};
-    G.nodes.forEach(n => { n.vx=n.vx||0; n.vy=n.vy||0; if(n.x==null){n.x=null;n.y=null;} });
-    initPositions();
-    updateStats();
-    updateListTab();
-    setStatus('Ready · ' + new Date().toLocaleTimeString('ko-KR'));
-    hasChanges = false;
-    document.getElementById('save-btn').style.display = 'none';
-    startSim(1.0);
-    setTimeout(fitView, 500);
-    window.focusNode = focusNode;
-    renderInsights();
-  } catch(e) {
-    setStatus('Error: ' + e.message);
-  }
-}
-
-function initPositions() {
-  const W = canvas.width || Math.max(800, window.innerWidth-320);
-  const H = canvas.height || window.innerHeight;
-  const events = G.nodes.filter(n => n.type === 'event');
-  const causes = G.nodes.filter(n => n.type === 'cause');
-  const effects = G.nodes.filter(n => n.type === 'effect');
-  events.forEach((n, i) => {
-    if (n.x == null) { n.x = W/2 + (i - (events.length-1)/2) * 200 + (Math.random()-.5)*40; n.y = H/2 + (Math.random()-.5)*60; }
-    n.vx=0; n.vy=0;
-  });
-  causes.forEach((n, i) => {
-    if (n.x == null) { n.x = W * 0.2 + (Math.random()-.5)*60; n.y = 100 + i * (H - 200) / Math.max(causes.length - 1, 1) + (Math.random()-.5)*30; }
-    n.vx=0; n.vy=0;
-  });
-  effects.forEach((n, i) => {
-    if (n.x == null) { n.x = W * 0.8 + (Math.random()-.5)*60; n.y = 100 + i * (H - 200) / Math.max(effects.length - 1, 1) + (Math.random()-.5)*30; }
-    n.vx=0; n.vy=0;
-  });
-}
-
-function startSim(a) { alpha = a; if (!raf) loop(); }
-function loop() {
-  if (alpha > 0.003) { tick(); alpha *= 0.965; }
-  draw();
-  raf = requestAnimationFrame(loop);
-}
-
-function tick() {
-  G.nodes.forEach(n => { n.vx *= 0.76; n.vy *= 0.76; });
-  for (let i = 0; i < G.nodes.length; i++) {
-    for (let j = i+1; j < G.nodes.length; j++) {
-      const a = G.nodes[i], b = G.nodes[j];
-      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy)||1;
-      const f = -3000/(d*d)*alpha;
-      const fx = dx/d*f, fy = dy/d*f;
-      a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
-    }
-  }
-  G.edges.forEach(e => {
-    const a = G.nodes.find(n=>n.id===e.from), b = G.nodes.find(n=>n.id===e.to);
-    if (!a||!b) return;
-    const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
-    const tgt = e.shared ? 220 : 130;
-    const f = (d-tgt)*0.06*alpha;
-    const fx=dx/d*f, fy=dy/d*f;
-    a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
-  });
-  const W=canvas.width, H=canvas.height;
-  G.nodes.forEach(n => { n.x=Math.max(28,Math.min(W-28,n.x+n.vx)); n.y=Math.max(28,Math.min(H-28,n.y+n.vy)); });
-}
-
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.save(); ctx.translate(camera.x,camera.y); ctx.scale(camera.s,camera.s);
-  const now = Date.now();
-
-  G.edges.forEach(e => {
-    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
-    if(!a||!b) return;
-    const isConnSel = selected && (e.from===selected.id || e.to===selected.id);
-    const isConnFlt = activeFilter && (a.type===activeFilter || b.type===activeFilter);
-    const isConn = selected ? isConnSel : (activeFilter ? isConnFlt : false);
-    const fadeOut = selected ? !isConnSel : (activeFilter ? !isConnFlt : false);
-
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-
-    let grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-    let ca = COL[a.type]||'#fff', cb = COL[b.type]||'#fff';
-    if(a.type==='effect' && a.sentiment==='neg') ca='#ffb4ab';
-    else if(a.type==='effect') ca='#66dd8b';
-    if(b.type==='effect' && b.sentiment==='neg') cb='#ffb4ab';
-    else if(b.type==='effect') cb='#66dd8b';
-
-    let alpha = fadeOut ? '11' : (e.shared?'BB':'55');
-    if (isConn) alpha = 'FF';
-
-    grad.addColorStop(0, ca + alpha); grad.addColorStop(1, cb + alpha);
-    ctx.strokeStyle = grad; ctx.lineWidth = (isConn?2.5:(e.shared?1.5:0.8))/camera.s;
-    if(isConn) { ctx.shadowColor=cb; ctx.shadowBlur=12; }
-
-    ctx.setLineDash(e.shared?[4,4]:[]); ctx.stroke(); ctx.setLineDash([]);
-    ctx.shadowBlur=0;
-
-    if(isConn && !e.shared) {
-      const t = (now % 1000) / 1000;
-      const px = a.x + (b.x-a.x)*t, py = a.y + (b.y-a.y)*t;
-      ctx.beginPath(); ctx.arc(px,py,3/camera.s,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-      ctx.beginPath(); ctx.arc(px,py,8/camera.s,0,Math.PI*2); ctx.fillStyle=cb+'99'; ctx.fill();
-    }
-
-    if(!e.shared) {
-      const ang=Math.atan2(b.y-a.y,b.x-a.x); const r=(RAD[b.type]||14)+3;
-      const tx=b.x-Math.cos(ang)*r, ty=b.y-Math.sin(ang)*r;
-      ctx.beginPath(); ctx.moveTo(tx,ty);
-      ctx.lineTo(tx-10*Math.cos(ang-.42),ty-10*Math.sin(ang-.42));
-      ctx.lineTo(tx-10*Math.cos(ang+.42),ty-10*Math.sin(ang+.42));
-      ctx.fillStyle=cb+(fadeOut?'11':(isConn?'FF':'88')); ctx.fill();
-    }
-    if(e.shared && e.label && showL && !fadeOut) {
-      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
-      ctx.font='10px "Inter","Noto Sans KR",sans-serif';
-      ctx.fillStyle='rgba(218,226,253,0.8)'; ctx.textAlign='center';
-      ctx.fillText(e.label, mx, my-6);
-    }
-  });
-
-  G.nodes.forEach(n => {
-    let r=RAD[n.type]||14;
-    const isH=hovered&&hovered.id===n.id, isS=selected&&selected.id===n.id;
-    const isMatch=searchQuery&&searchMatches.includes(n.id);
-    const isConnNodeSel = selected && (n.id===selected.id || G.edges.some(e=>(e.from===selected.id&&e.to===n.id)||(e.to===selected.id&&e.from===n.id)));
-    const isConnNodeFlt = activeFilter && (n.type===activeFilter || G.edges.some(e=> (e.from===n.id && G.nodes.find(o=>o.id===e.to)?.type===activeFilter) || (e.to===n.id && G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
-    const isConnNode = selected ? isConnNodeSel : (activeFilter ? isConnNodeFlt : false);
-    const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
-
-    let col=COL[n.type]||'#888';
-    if(n.type==='effect') {
-      if(n.sentiment==='pos') col='#66dd8b';
-      else if(n.sentiment==='neg') col='#ffb4ab';
-    }
-
-    if(isMatch) {
-      ctx.beginPath(); ctx.arc(n.x,n.y,r+16,0,Math.PI*2);
-      ctx.fillStyle=col+'1A'; ctx.fill();
-      ctx.beginPath(); ctx.arc(n.x,n.y,r+10,0,Math.PI*2);
-      ctx.strokeStyle=col+'88'; ctx.lineWidth=1.5/camera.s; ctx.stroke();
-    }
-    if(isH||isS) { r *= 1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+8,0,Math.PI*2); ctx.fillStyle=col+'22'; ctx.fill(); }
-    if(isS) {
-      r *= 1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+4,0,Math.PI*2);
-      ctx.strokeStyle=col; ctx.lineWidth=2/camera.s; ctx.stroke();
-    }
-
-    let grd = ctx.createRadialGradient(n.x, n.y, r*0.5, n.x, n.y, r*2);
-    grd.addColorStop(0, col); grd.addColorStop(1, col+'00');
-    ctx.beginPath(); ctx.arc(n.x,n.y,r*2,0,Math.PI*2);
-    ctx.fillStyle=grd; ctx.globalAlpha=fadeOutNode?0.05:0.2; ctx.fill(); ctx.globalAlpha=1;
-
-    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
-    ctx.fillStyle=col; ctx.globalAlpha=fadeOutNode?0.15:(isH||isS?1:.8); ctx.fill(); ctx.globalAlpha=1;
-
-    ctx.beginPath(); ctx.arc(n.x, n.y, r*0.3, 0, Math.PI*2);
-    ctx.fillStyle='#0b1326'; ctx.globalAlpha=fadeOutNode?0.2:0.6; ctx.fill(); ctx.globalAlpha=1;
-
-    if(showL && !fadeOutNode) {
-      let lbl=n.label.length>12?n.label.slice(0,11)+'…':n.label;
-      if(n.type==='effect'){
-        if(n.sentiment==='pos') lbl = '▲ ' + lbl;
-        else if(n.sentiment==='neg') lbl = '▼ ' + lbl;
-      }
-      ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
-      ctx.fillStyle=isH||isS ? '#fff' : 'rgba(218,226,253,0.85)';
-      ctx.textAlign='center'; ctx.fillText(lbl,n.x,n.y+r+14);
-    }
-  });
-  ctx.restore();
-}
-
-function nodeAt(x,y) {
-  const wx=(x-camera.x)/camera.s, wy=(y-camera.y)/camera.s;
-  for (let i = G.nodes.length - 1; i >= 0; i--) {
-      const n = G.nodes[i], r=(RAD[n.type]||14)+6;
-      if(Math.hypot(n.x-wx,n.y-wy)<r) return n;
-  }
-  return null;
-}
-
-canvas.addEventListener('mousedown',e=>{
-  if(e.button===2) return; hideCtxMenu();
-  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  const nd=nodeAt(x,y);
-  if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y};
-  else pan={sx:x,sy:y,cx:camera.x,cy:camera.y};
-});
-
-canvas.addEventListener('contextmenu',e=>{
-  e.preventDefault(); const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  const nd=nodeAt(x,y); if(nd) { selected=nd; showCtxMenu(e.clientX,e.clientY); }
-});
-
-canvas.addEventListener('mousemove',e=>{
-  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  if(drag){drag.node.x=drag.nx+(x-drag.ox)/camera.s;drag.node.y=drag.ny+(y-drag.oy)/camera.s;return;}
-  if(pan){camera.x=pan.cx+(x-pan.sx);camera.y=pan.cy+(y-pan.sy);return;}
-  const nd=nodeAt(x,y); hovered=nd||null; canvas.style.cursor=nd?'pointer':'grab';
-  if(nd){
-    tip.style.display='block';
-    tip.style.left=Math.min(e.clientX+14,window.innerWidth-230)+'px';
-    tip.style.top=Math.max(e.clientY+14,10)+'px';
-    tip.querySelector('.tt').textContent=nd.label;
-    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')+(nd.sentiment==='pos'?' (긍정)':nd.sentiment==='neg'?' (부정)':'')};
-    const tc=tip.querySelector('.tc'); tc.textContent=tm[nd.type]||'';
-    let tCol=COL[nd.type]||'#888';
-    if(nd.type==='effect') tCol=(nd.sentiment==='pos')?'#66dd8b':(nd.sentiment==='neg'?'#ffb4ab':'#66dd8b');
-    tc.style.color=tCol; tip.querySelector('.td').textContent=nd.desc||'';
-  } else tip.style.display='none';
-});
-
-canvas.addEventListener('mouseup',e=>{
-  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5){
-    const nd=nodeAt(x,y);if(nd)selectNode(nd);
-  } else if(pan&&Math.hypot(x-pan.sx,y-pan.sy)<5){
-    if(selected || activeFilter) {
-      if(activeFilter) toggleFilter(activeFilter);
-      selected = null;
-      document.getElementById('no-sel').classList.remove('hidden');
-      document.getElementById('det').classList.add('hidden');
-      fitView();
-    }
-  }
-  drag=null;pan=null;
-});
-canvas.addEventListener('wheel',e=>{
-  e.preventDefault(); const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
-  const d=e.deltaY>0?.88:1.14;
-  camera.x=mx-(mx-camera.x)*d; camera.y=my-(my-camera.y)*d;
-  camera.s=Math.max(.15,Math.min(5,camera.s*d));
-},{passive:false});
-
-let initialPinchDistance = null;
-let initialCameraS = null;
-function getTouchPos(e, i=0) {
-  const r = canvas.getBoundingClientRect();
-  return { x: e.touches[i].clientX - r.left, y: e.touches[i].clientY - r.top };
-}
-canvas.addEventListener('touchstart', e => {
-  if (e.touches.length === 1) {
-    const p = getTouchPos(e); const nd = nodeAt(p.x, p.y);
-    if(nd) drag = {node:nd, ox:p.x, oy:p.y, nx:nd.x, ny:nd.y};
-    else pan = {sx:p.x, sy:p.y, cx:camera.x, cy:camera.y};
-  } else if (e.touches.length === 2) {
-    drag = null; pan = null;
-    const p1 = getTouchPos(e, 0), p2 = getTouchPos(e, 1);
-    initialPinchDistance = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-    initialCameraS = camera.s;
-  }
-}, {passive: false});
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (e.touches.length === 1) {
-    const p = getTouchPos(e);
-    if(drag) {
-      drag.node.x = drag.nx + (p.x - drag.ox)/camera.s;
-      drag.node.y = drag.ny + (p.y - drag.oy)/camera.s;
-    } else if(pan) {
-      camera.x = pan.cx + (p.x - pan.sx); camera.y = pan.cy + (p.y - pan.sy);
-    }
-  } else if (e.touches.length === 2 && initialPinchDistance) {
-    const p1 = getTouchPos(e, 0), p2 = getTouchPos(e, 1);
-    const currentDist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-    const scaleRatio = currentDist / initialPinchDistance;
-    camera.s = Math.max(0.15, Math.min(5, initialCameraS * scaleRatio));
-  }
-}, {passive: false});
-canvas.addEventListener('touchend', e => { drag=null; pan=null; initialPinchDistance=null; });
-
-canvas.addEventListener('click', e => {
-  hideCtxMenu();
-  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  const nd=nodeAt(x,y);
-  if(nd) { selectNode(nd); return; }
-  if(selected || activeFilter) {
-    if(activeFilter) toggleFilter(activeFilter);
-    selected = null;
-    document.getElementById('no-sel').classList.remove('hidden');
-    document.getElementById('det').classList.add('hidden');
-  }
-});
-
-function handleSearch(q) {
-  searchQuery = q.trim().toLowerCase();
-  if(!searchQuery) { searchMatches=[]; document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>'; return; }
-  switchTab('search');
-  searchMatches = G.nodes.filter(n=>(n.label+' '+(n.desc||'')).toLowerCase().includes(searchQuery)).map(n=>n.id);
-  const results = G.nodes.filter(n=>searchMatches.includes(n.id));
-  if(!results.length) { document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">검색 결과가 없습니다.</div>'; return; }
-  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
-  document.getElementById('search-results-list').innerHTML = results.map(n=>{
-    let tCol=COL[n.type]||'#888';
-    if(n.type==='effect') tCol=(n.sentiment==='pos')?'#66dd8b':(n.sentiment==='neg'?'#ffb4ab':'#66dd8b');
-    const hl = n.label.replace(new RegExp(searchQuery,'gi'), m=>`<mark class="bg-amber-400/30 text-amber-200 rounded px-0.5">${m}</mark>`);
-    return `<div class="p-3 rounded-lg bg-surface-bright/30 border border-outline-variant/20 mb-2 cursor-pointer hover:bg-surface-bright/60 hover:border-amber-400/50 transition-all" onclick="focusNode('${n.id}')">
-      <div class="text-sm font-semibold mb-1 text-on-surface">${hl}</div>
-      <div class="text-[10px] opacity-70 flex items-center gap-1" style="color:${tCol}">
-        <span class="w-1.5 h-1.5 rounded-full" style="background:${tCol}"></span> ${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-document.getElementById('search-input').addEventListener('input', e=>handleSearch(e.target.value));
-
-function focusNode(id) {
-  const nd=G.nodes.find(n=>n.id===id); if(!nd) return; selectNode(nd);
-  camera.x=canvas.width/2-nd.x*camera.s - 150; camera.y=canvas.height/2-nd.y*camera.s;
-}
-
-function selectNode(nd) {
-  selected=nd; switchTab('detail');
-  document.getElementById('no-sel').classList.add('hidden');
-  const det=document.getElementById('det'); det.classList.remove('hidden'); det.classList.add('flex');
-
-  let col=COL[nd.type]||'#888';
-  let tTitle = nd.type==='event'?'핵심 사건':nd.type==='cause'?'발생 원인':'파급 효과';
-  if(nd.type==='effect'&&nd.sentiment==='pos') col='#66dd8b';
-  if(nd.type==='effect'&&nd.sentiment==='neg') { col='#ffb4ab'; tTitle='부정적 파급 효과'; }
-
-  const linksIn = G.edges.filter(e=>e.to===nd.id).map(e=>G.nodes.find(n=>n.id===e.from)).filter(Boolean);
-  const linksOut = G.edges.filter(e=>e.from===nd.id).map(e=>G.nodes.find(n=>n.id===e.to)).filter(Boolean);
-
-  let tagsHTML = '';
-  if(nd.depth) tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border" style="border-color:${col}44;color:${col}">${nd.depth}</span>`;
-  if(nd.type==='effect') {
-    if(nd.sentiment==='pos') tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border border-tertiary/40 text-tertiary font-bold">+ 긍정적</span>`;
-    if(nd.sentiment==='neg') tagsHTML += `<span class="px-2 py-0.5 rounded-md text-[10px] border border-error/40 text-error font-bold">- 리스크</span>`;
-  }
-
-  det.innerHTML = `
-    <div class="space-y-1">
-      <span class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2" style="color:${col}">
-        <span class="w-2 h-2 rounded-full animate-pulse" style="background:${col}"></span> ${tTitle}
-      </span>
-      <h2 class="font-headline font-bold text-lg text-on-surface leading-tight mt-1 mb-2">${nd.label}</h2>
-      <div class="flex gap-1 mb-3">${tagsHTML}</div>
-    </div>
-
-    <div class="p-3 rounded-lg bg-surface-container/60 border border-outline-variant/10 shadow-inner">
-      <p class="text-on-surface-variant text-xs leading-relaxed opacity-90">${nd.desc||'설명이 없습니다.'}</p>
-    </div>
-
-    <div class="space-y-4 mt-2 flex-grow">
-      ${linksIn.length ? `
-      <div>
-        <span class="text-[10px] uppercase font-bold text-secondary tracking-widest block mb-2 opacity-80">이전 연결 (수신)</span>
-        <div class="flex flex-wrap gap-1.5">
-          ${linksIn.map(l=>`<span class="px-2 py-1 rounded-md bg-secondary/10 border border-secondary/20 text-[10px] text-secondary cursor-pointer hover:bg-secondary/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
-        </div>
-      </div>` : ''}
-
-      ${linksOut.length ? `
-      <div>
-        <span class="text-[10px] uppercase font-bold text-tertiary tracking-widest block mb-2 opacity-80">이후 연결 (발신)</span>
-        <div class="flex flex-wrap gap-1.5">
-          ${linksOut.map(l=>`<span class="px-2 py-1 rounded-md bg-tertiary/10 border border-tertiary/20 text-[10px] text-tertiary cursor-pointer hover:bg-tertiary/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
-        </div>
-      </div>` : ''}
-    </div>
-
-    <button onclick="confirmDelete()" class="mt-auto w-full py-2.5 rounded-lg border border-error/30 text-error font-bold tracking-tight text-xs hover:bg-error/10 active:scale-95 duration-200 mt-6 flex justify-center items-center gap-1">
-      <span class="material-symbols-outlined text-[16px]">delete</span> 노드 삭제
-    </button>
-  `;
-}
-function selectNodeById(id){const nd=G.nodes.find(n=>n.id===id);if(nd)selectNode(nd);}
-
-function switchTab(t) {
-  document.getElementById('tab-detail').classList.toggle('hidden', t!=='detail');
-  document.getElementById('tab-detail').classList.toggle('flex', t==='detail');
-  document.getElementById('tab-search').classList.toggle('hidden', t!=='search');
-  document.getElementById('tab-search').classList.toggle('flex', t==='search');
-  document.getElementById('tab-list').classList.toggle('hidden', t!=='list');
-  document.getElementById('tab-list').classList.toggle('flex', t==='list');
-
-  const bd = document.getElementById('tab-btn-detail');
-  const bl = document.getElementById('tab-btn-list');
-  const bs = document.getElementById('tab-btn-search');
-
-  [bd, bl, bs].forEach(b => b.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-on-surface-variant hover:bg-surface-bright/50');
-
-  const activeBtn = t==='detail' ? bd : t==='list' ? bl : bs;
-  activeBtn.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-amber-400/20 text-amber-400';
-}
-
-function toggleFilter(t) {
-  if (activeFilter === t) activeFilter = null;
-  else activeFilter = t;
-
-  if (activeFilter) {
-    selected = null;
-    document.getElementById('no-sel').classList.remove('hidden');
-    document.getElementById('det').classList.add('hidden');
-  }
-
-  const btns = {
-    'cause': { ids: ['flt-cause', 'flt-cause-m'], c: '#ffe2ab' },
-    'event': { ids: ['flt-event', 'flt-event-m'], c: '#edb1ff' },
-    'effect': { ids: ['flt-effect', 'flt-effect-m'], c: '#66dd8b' }
-  };
-
-  Object.keys(btns).forEach(k => {
-    btns[k].ids.forEach(id => {
-      const b = document.getElementById(id);
-      if (!b) return;
-      if (k === activeFilter) {
-        b.style.backgroundColor = btns[k].c + '33';
-        b.style.color = btns[k].c;
-      } else {
-        b.style.backgroundColor = 'transparent';
-        b.style.color = '';
-      }
-    });
-  });
-}
-
-function showCtxMenu(x,y) {
-  ctxMenu.style.display='block'; ctxMenu.style.left=Math.min(x,window.innerWidth-150)+'px'; ctxMenu.style.top=Math.min(y,window.innerHeight-100)+'px';
-}
-function hideCtxMenu() { ctxMenu.style.display='none'; }
-function focusSelected() { hideCtxMenu(); if(selected) selectNode(selected); }
-
-function confirmDelete() {
-  hideCtxMenu(); if(!selected) return; pendingDelete=selected;
-  const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;
-  document.getElementById('modal-msg').textContent=`"${selected.label}" 관련 엣지 ${connCount}개가 함께 삭제됩니다.`;
-  document.getElementById('modal-overlay').classList.add('show');
-}
-function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); pendingDelete=null; }
-
-function executeDelete() {
-  if(!pendingDelete) return; const id=pendingDelete.id;
-  G.nodes=G.nodes.filter(n=>n.id!==id); G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);
-  if(selected&&selected.id===id) { selected=null; document.getElementById('no-sel').classList.remove('hidden'); document.getElementById('det').classList.add('hidden'); }
-  pendingDelete=null; closeModal(); updateStats(); updateListTab(); handleSearch(searchQuery); hasChanges=true;
-  document.getElementById('save-btn').style.display='block'; setStatus(`Node deleted.`); startSim(.4);
-}
-
-function updateStats() {
-  document.getElementById('hstats-nodes').textContent=`Nodes: ${G.nodes.length}`;
-  document.getElementById('hstats-edges').textContent=`Edges: ${G.edges.length}`;
-}
-
-function updateListTab() {
-  const listEl = document.getElementById('tab-list');
-  const causes = G.nodes.filter(n=>n.type==='cause');
-  const events = G.nodes.filter(n=>n.type==='event');
-  const effects = G.nodes.filter(n=>n.type==='effect');
-
-  const renderCat = (title, items, color) => {
-    if(!items.length) return '';
-    return `
-      <div>
-        <div class="text-[11px] uppercase font-bold tracking-widest mb-3 flex items-center gap-2" style="color:${color}">
-          <span class="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_${color}88]" style="background:${color}"></span> ${title} <span class="opacity-50 text-[10px]">(${items.length})</span>
-        </div>
-        <div class="flex flex-col gap-2 pl-3 border-l pb-4" style="border-color:${color}33">
-          ${items.map(n => {
-            let label = n.label;
-            if(n.type==='effect') {
-              if(n.sentiment==='pos') label = '<span class="text-tertiary">▲</span> ' + label;
-              else if(n.sentiment==='neg') label = '<span class="text-error">▼</span> ' + label;
-            }
-            return `<div class="text-[13px] text-on-surface-variant hover:text-on-surface cursor-pointer transition-colors leading-snug break-keep" onclick="focusNode('${n.id}')" title="${n.label}">${label}</div>`;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  };
-
-  listEl.innerHTML = `
-    ${renderCat('발생 원인 (Cause)', causes, COL['cause'])}
-    ${renderCat('핵심 사건 (Event)', events, COL['event'])}
-    ${renderCat('파급 효과 (Effect)', effects, COL['effect'])}
-  `;
-}
-
-function setStatus(msg) { document.getElementById('status').textContent=msg; }
-function fitView() {
-  if(!G.nodes.length)return; const xs=G.nodes.map(n=>n.x),ys=G.nodes.map(n=>n.y);
-  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys), pad=80;
-  const cw=canvas.width, ch=canvas.height;
-  camera.s=Math.min((cw-pad*2)/Math.max(maxX-minX,1),(ch-pad*2)/Math.max(maxY-minY,1),1.5);
-  camera.x=pad-minX*camera.s+((cw-pad*2)-(maxX-minX)*camera.s)/2; camera.y=pad-minY*camera.s+((ch-pad*2)-(maxY-minY)*camera.s)/2;
-}
-function zoom(f) { const cx=canvas.width/2,cy=canvas.height/2; camera.x=cx-(cx-camera.x)*f; camera.y=cy-(cy-camera.y)*f; camera.s=Math.max(.15,Math.min(5,camera.s*f)); }
-function toggleLabels(){showL=!showL;}
-
-function saveChanges() {
-  const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),created:new Date().toISOString().slice(0,10)}};
-  const jsContent = "window.DATA = " + JSON.stringify(out,null,2) + ";";
-  const blob=new Blob([jsContent],{type:'application/javascript'});
-  const url=URL.createObjectURL(blob);
-  const scriptName = document.getElementById('data-script').getAttribute('src');
-  const a=document.createElement('a'); a.href=url; a.download=scriptName; a.click();
-  URL.revokeObjectURL(url); hasChanges=false; document.getElementById('save-btn').style.display='none';
-  setStatus('Saved -> ' + scriptName);
-}
-
-function exportJSON() {
-  const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='tempus_graph_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url);
-}
-
-document.addEventListener('keydown',e=>{
-  if((e.key==='Delete'||e.key==='Backspace')&&selected&&document.activeElement===document.body) { e.preventDefault(); confirmDelete(); }
-  if(e.key==='Escape') { closeModal(); hideCtxMenu(); if(searchQuery){ document.getElementById('search-input').value=''; handleSearch(''); } }
-  if((e.ctrlKey||e.metaKey)&&e.key==='f') { e.preventDefault(); document.getElementById('search-input').focus(); switchTab('search'); }
-});
-
-function resize() { canvas.width=canvas.parentElement.clientWidth; canvas.height=canvas.parentElement.clientHeight; }
-window.addEventListener('resize',()=>{resize();startSim(.2);});
-
-resize(); loadData(); if(!raf)loop();
-
-// ── Starfield ──
+// ═══════════════════════════════════════════════
+//  STARFIELD
+// ═══════════════════════════════════════════════
 (function() {
   const sc = document.getElementById('star-canvas');
   const sx = sc.getContext('2d');
@@ -821,13 +379,461 @@ resize(); loadData(); if(!raf)loop();
     stars.forEach(s=>{
       const ao = s.o*(0.7+0.3*Math.sin(t*0.001*s.speed+s.phase));
       sx.beginPath(); sx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      sx.fillStyle=`rgba(200,216,255,${ao})`; sx.fill();
+      sx.fillStyle=`rgba(210,230,220,${ao})`; sx.fill();
     });
     requestAnimationFrame(drawStar);
   }
   window.addEventListener('resize', resizeStar);
   resizeStar(); drawStar(0);
 })();
+
+// ═══════════════════════════════════════════════
+//  INSIGHTS RENDER
+// ═══════════════════════════════════════════════
+function renderInsights() {
+  const container = document.getElementById('insight-panel-content');
+  if(!window.INSIGHTS_DB) {
+    container.innerHTML = '<div class="text-sm opacity-40 text-center py-10 text-[#7aada0]">인사이트 데이터가 없습니다.</div>';
+    return;
+  }
+  const filtered = window.INSIGHTS_DB.filter(ins => ins.targetGraph === 'tempus_graph.html');
+  if(!filtered.length) {
+    container.innerHTML = '<div class="text-sm opacity-40 text-center py-10 text-[#7aada0]">등록된 인사이트가 없습니다.</div>';
+    return;
+  }
+  const sorted = [...filtered].sort((a,b) => new Date(b.date) - new Date(a.date));
+  let html = '';
+  sorted.forEach(ins => {
+    const pContent = marked.parse(ins.content);
+    const clickable = ins.targetNodes && ins.targetNodes.length > 0;
+    const onClickAttr = clickable
+      ? `onclick="gtag('event','insight_click',{insight_title:'${ins.title.replace(/'/g,'')}',workspace:'tempus_graph'}); window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`
+      : '';
+    const hoverClass = clickable
+      ? 'cursor-pointer hover:border-[#f59e0b]/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#f59e0b]/10 transition-all duration-200'
+      : '';
+    html += `
+      <div class="bg-[#0e1d18]/80 border border-[#f59e0b]/15 rounded-2xl p-4 ${hoverClass}" ${onClickAttr}>
+        <div class="flex justify-between items-start mb-2">
+          <div class="text-[10px] font-mono opacity-50 bg-black/30 px-2 py-0.5 rounded-md">${ins.date}</div>
+          ${clickable ? `<span class="material-symbols-outlined text-[14px] text-[#f59e0b]/50">touch_app</span>` : ''}
+        </div>
+        <h3 class="font-bold text-[#c6ddd5] text-[14px] mb-1.5 leading-snug">${ins.title}</h3>
+        <p class="text-[11px] text-[#34d399] font-semibold mb-3 border-l-2 border-[#34d399]/40 pl-2">${ins.summary}</p>
+        <div class="prose prose-invert prose-sm max-w-none text-[12px] leading-relaxed text-[#7aada0]">
+          ${pContent}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════
+//  GRAPH ENGINE
+// ═══════════════════════════════════════════════
+const COL = { event: '#34d399', cause: '#f59e0b', effect: '#60a5fa' };
+const RAD = { event: 26, cause: 17, effect: 15 };
+
+let G = {nodes:[], edges:[]};
+let camera = {x:0, y:0, s:1};
+let drag=null, pan=null, hovered=null, selected=null, showL=true;
+let raf=null, alpha=0;
+let searchQuery='';
+let searchMatches=[];
+let pendingDelete=null;
+let hasChanges=false;
+let activeFilter=null;
+
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+const tip = document.getElementById('tip');
+const ctxMenu = document.getElementById('ctx-menu');
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
+window.addEventListener('resize', () => { resizeCanvas(); fitView(); });
+resizeCanvas();
+
+async function loadData() {
+  try {
+    if (window.DATA) G = JSON.parse(JSON.stringify(window.DATA));
+    else G = {nodes:[], edges:[]};
+    G.nodes.forEach(n => { n.vx=0; n.vy=0; if(n.x==null){n.x=null; n.y=null;} });
+    initPositions();
+    updateStats();
+    updateListTab();
+    hasChanges = false;
+    document.getElementById('save-btn').style.display = 'none';
+    startSim(1.0);
+    setTimeout(fitView, 600);
+    window.focusNode = focusNode;
+    renderInsights();
+  } catch(e) { console.error(e); }
+}
+
+function initPositions() {
+  const W = canvas.width || 800;
+  const H = canvas.height || 600;
+  const events  = G.nodes.filter(n => n.type==='event');
+  const causes  = G.nodes.filter(n => n.type==='cause');
+  const effects = G.nodes.filter(n => n.type==='effect');
+  events.forEach((n,i) => {
+    if(n.x==null) { n.x = W/2 + (i-(events.length-1)/2)*220 + (Math.random()-.5)*40; n.y = H/2 + (Math.random()-.5)*60; }
+    n.vx=0; n.vy=0;
+  });
+  causes.forEach((n,i) => {
+    if(n.x==null) { n.x = W*0.18 + (Math.random()-.5)*50; n.y = 80 + i*(H-160)/Math.max(causes.length-1,1) + (Math.random()-.5)*25; }
+    n.vx=0; n.vy=0;
+  });
+  effects.forEach((n,i) => {
+    if(n.x==null) { n.x = W*0.82 + (Math.random()-.5)*50; n.y = 80 + i*(H-160)/Math.max(effects.length-1,1) + (Math.random()-.5)*25; }
+    n.vx=0; n.vy=0;
+  });
+}
+
+function startSim(a) { alpha = a; if (!raf) loop(); }
+function loop() {
+  if (alpha > 0.003) { tick(); alpha *= 0.965; }
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+function tick() {
+  G.nodes.forEach(n => { n.vx *= 0.76; n.vy *= 0.76; });
+  for (let i=0; i<G.nodes.length; i++) {
+    for (let j=i+1; j<G.nodes.length; j++) {
+      const a=G.nodes[i], b=G.nodes[j];
+      const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+      const f=-3000/(d*d)*alpha;
+      const fx=dx/d*f, fy=dy/d*f;
+      a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+    }
+  }
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    const tgt=e.shared?220:130;
+    const f=(d-tgt)*0.06*alpha;
+    const fx=dx/d*f, fy=dy/d*f;
+    a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+  });
+  const W=canvas.width, H=canvas.height;
+  G.nodes.forEach(n => { n.x=Math.max(28,Math.min(W-28,n.x+n.vx)); n.y=Math.max(28,Math.min(H-28,n.y+n.vy)); });
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.save(); ctx.translate(camera.x,camera.y); ctx.scale(camera.s,camera.s);
+  const now = Date.now();
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const isConnSel = selected && (e.from===selected.id || e.to===selected.id);
+    const isConnFlt = activeFilter && (a.type===activeFilter || b.type===activeFilter);
+    const isConn = selected ? isConnSel : (activeFilter ? isConnFlt : false);
+    const fadeOut = selected ? !isConnSel : (activeFilter ? !isConnFlt : false);
+
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    let grad = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    let ca=COL[a.type]||'#fff', cb=COL[b.type]||'#fff';
+    if(a.type==='effect'&&a.sentiment==='neg') ca='#f87171';
+    if(b.type==='effect'&&b.sentiment==='neg') cb='#f87171';
+    let al = fadeOut ? '11' : (e.shared?'BB':'55');
+    if(isConn) al = 'FF';
+    grad.addColorStop(0, ca+al); grad.addColorStop(1, cb+al);
+    ctx.strokeStyle=grad; ctx.lineWidth=(isConn?2.5:(e.shared?1.5:0.8))/camera.s;
+    if(isConn) { ctx.shadowColor=cb; ctx.shadowBlur=12; }
+    ctx.setLineDash(e.shared?[4,4]:[]); ctx.stroke(); ctx.setLineDash([]); ctx.shadowBlur=0;
+
+    if(isConn && !e.shared) {
+      const t=(now%1000)/1000;
+      const px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
+      ctx.beginPath(); ctx.arc(px,py,3/camera.s,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(px,py,8/camera.s,0,Math.PI*2); ctx.fillStyle=cb+'99'; ctx.fill();
+    }
+    if(!e.shared) {
+      const ang=Math.atan2(b.y-a.y,b.x-a.x); const r=(RAD[b.type]||14)+3;
+      const tx=b.x-Math.cos(ang)*r, ty=b.y-Math.sin(ang)*r;
+      ctx.beginPath(); ctx.moveTo(tx,ty);
+      ctx.lineTo(tx-10*Math.cos(ang-.42),ty-10*Math.sin(ang-.42));
+      ctx.lineTo(tx-10*Math.cos(ang+.42),ty-10*Math.sin(ang+.42));
+      ctx.fillStyle=cb+(fadeOut?'11':(isConn?'FF':'88')); ctx.fill();
+    }
+    if(e.shared && e.label && showL && !fadeOut) {
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      ctx.font='10px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle='rgba(198,221,213,0.8)'; ctx.textAlign='center';
+      ctx.fillText(e.label, mx, my-6);
+    }
+  });
+
+  G.nodes.forEach(n => {
+    let r=RAD[n.type]||14;
+    const isH=hovered&&hovered.id===n.id, isS=selected&&selected.id===n.id;
+    const isMatch=searchQuery&&searchMatches.includes(n.id);
+    const isConnNodeSel = selected && (n.id===selected.id || G.edges.some(e=>(e.from===selected.id&&e.to===n.id)||(e.to===selected.id&&e.from===n.id)));
+    const isConnNodeFlt = activeFilter && (n.type===activeFilter || G.edges.some(e=>(e.from===n.id&&G.nodes.find(o=>o.id===e.to)?.type===activeFilter)||(e.to===n.id&&G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
+    const isConnNode = selected ? isConnNodeSel : (activeFilter ? isConnNodeFlt : false);
+    const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
+
+    let col=COL[n.type]||'#888';
+    if(n.type==='effect') { col=(n.sentiment==='neg')?'#f87171':'#60a5fa'; }
+
+    if(isMatch) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+16,0,Math.PI*2); ctx.fillStyle=col+'1A'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+10,0,Math.PI*2); ctx.strokeStyle=col+'88'; ctx.lineWidth=1.5/camera.s; ctx.stroke();
+    }
+    if(isH||isS) { r*=1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+8,0,Math.PI*2); ctx.fillStyle=col+'22'; ctx.fill(); }
+    if(isS) { r*=1.15; ctx.beginPath(); ctx.arc(n.x,n.y,r+4,0,Math.PI*2); ctx.strokeStyle=col; ctx.lineWidth=2/camera.s; ctx.stroke(); }
+
+    let grd=ctx.createRadialGradient(n.x,n.y,r*0.5,n.x,n.y,r*2);
+    grd.addColorStop(0,col); grd.addColorStop(1,col+'00');
+    ctx.beginPath(); ctx.arc(n.x,n.y,r*2,0,Math.PI*2); ctx.fillStyle=grd; ctx.globalAlpha=fadeOutNode?0.05:0.2; ctx.fill(); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2); ctx.fillStyle=col; ctx.globalAlpha=fadeOutNode?0.15:(isH||isS?1:.8); ctx.fill(); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(n.x,n.y,r*0.3,0,Math.PI*2); ctx.fillStyle='#050a08'; ctx.globalAlpha=fadeOutNode?0.2:0.6; ctx.fill(); ctx.globalAlpha=1;
+
+    if(showL && !fadeOutNode) {
+      let lbl=n.label.length>12?n.label.slice(0,11)+'…':n.label;
+      if(n.type==='effect') { lbl=(n.sentiment==='neg'?'▼ ':'▲ ')+lbl; }
+      ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle=isH||isS?'#fff':'rgba(198,221,213,0.85)';
+      ctx.textAlign='center'; ctx.fillText(lbl,n.x,n.y+r+14);
+    }
+  });
+  ctx.restore();
+}
+
+function nodeAt(x,y) {
+  const wx=(x-camera.x)/camera.s, wy=(y-camera.y)/camera.s;
+  for(let i=G.nodes.length-1; i>=0; i--) {
+    const n=G.nodes[i], r=(RAD[n.type]||14)+6;
+    if(Math.hypot(n.x-wx,n.y-wy)<r) return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown',e=>{
+  if(e.button===2) return; hideCtxMenu();
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y};
+  else pan={sx:x,sy:y,cx:camera.x,cy:camera.y};
+});
+canvas.addEventListener('contextmenu',e=>{
+  e.preventDefault(); const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const nd=nodeAt(x,y); if(nd){ selected=nd; showCtxMenu(e.clientX,e.clientY); }
+});
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag){drag.node.x=drag.nx+(x-drag.ox)/camera.s;drag.node.y=drag.ny+(y-drag.oy)/camera.s;return;}
+  if(pan){camera.x=pan.cx+(x-pan.sx);camera.y=pan.cy+(y-pan.sy);return;}
+  const nd=nodeAt(x,y); hovered=nd||null; canvas.style.cursor=nd?'pointer':'grab';
+  if(nd){
+    tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+14,window.innerWidth-240)+'px';
+    tip.style.top=Math.max(e.clientY+14,10)+'px';
+    tip.querySelector('.tt').textContent=nd.label;
+    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')+(nd.sentiment==='pos'?' (긍정)':nd.sentiment==='neg'?' (부정)':'')};
+    const tc=tip.querySelector('.tc'); tc.textContent=tm[nd.type]||'';
+    let tCol=COL[nd.type]||'#888';
+    if(nd.type==='effect') tCol=nd.sentiment==='neg'?'#f87171':'#60a5fa';
+    tc.style.color=tCol; tip.querySelector('.td').textContent=nd.desc||'';
+  } else tip.style.display='none';
+});
+canvas.addEventListener('mouseup',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5){ const nd=nodeAt(x,y); if(nd) selectNode(nd); }
+  else if(pan&&Math.hypot(x-pan.sx,y-pan.sy)<5){
+    if(selected||activeFilter){ if(activeFilter) toggleFilter(activeFilter); selected=null; document.getElementById('no-sel').classList.remove('hidden'); document.getElementById('det').classList.add('hidden'); fitView(); }
+  }
+  drag=null; pan=null;
+});
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault(); const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const d=e.deltaY>0?.88:1.14;
+  camera.x=mx-(mx-camera.x)*d; camera.y=my-(my-camera.y)*d;
+  camera.s=Math.max(.15,Math.min(5,camera.s*d));
+},{passive:false});
+
+let initialPinchDistance=null, initialCameraS=null;
+function getTouchPos(e,i=0){ const r=canvas.getBoundingClientRect(); return {x:e.touches[i].clientX-r.left,y:e.touches[i].clientY-r.top}; }
+canvas.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){ const p=getTouchPos(e); const nd=nodeAt(p.x,p.y); if(nd) drag={node:nd,ox:p.x,oy:p.y,nx:nd.x,ny:nd.y}; else pan={sx:p.x,sy:p.y,cx:camera.x,cy:camera.y}; }
+  else if(e.touches.length===2){ drag=null; pan=null; const p1=getTouchPos(e,0),p2=getTouchPos(e,1); initialPinchDistance=Math.hypot(p1.x-p2.x,p1.y-p2.y); initialCameraS=camera.s; }
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(e.touches.length===1){ const p=getTouchPos(e); if(drag){drag.node.x=drag.nx+(p.x-drag.ox)/camera.s;drag.node.y=drag.ny+(p.y-drag.oy)/camera.s;} else if(pan){camera.x=pan.cx+(p.x-pan.sx);camera.y=pan.cy+(p.y-pan.sy);} }
+  else if(e.touches.length===2&&initialPinchDistance){ const p1=getTouchPos(e,0),p2=getTouchPos(e,1); camera.s=Math.max(.15,Math.min(5,initialCameraS*Math.hypot(p1.x-p2.x,p1.y-p2.y)/initialPinchDistance)); }
+},{passive:false});
+canvas.addEventListener('touchend',()=>{ drag=null; pan=null; initialPinchDistance=null; });
+
+function handleSearch(q) {
+  searchQuery=q.trim().toLowerCase();
+  if(!searchQuery){ searchMatches=[]; document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>'; return; }
+  switchTab('search');
+  searchMatches=G.nodes.filter(n=>(n.label+' '+(n.desc||'')).toLowerCase().includes(searchQuery)).map(n=>n.id);
+  const results=G.nodes.filter(n=>searchMatches.includes(n.id));
+  if(!results.length){ document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">검색 결과가 없습니다.</div>'; return; }
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  document.getElementById('search-results-list').innerHTML=results.map(n=>{
+    let tCol=COL[n.type]||'#888'; if(n.type==='effect') tCol=n.sentiment==='neg'?'#f87171':'#60a5fa';
+    const hl=n.label.replace(new RegExp(searchQuery,'gi'),m=>`<mark class="bg-[#f59e0b]/30 text-[#fbbf24] rounded px-0.5">${m}</mark>`);
+    return `<div class="p-3 rounded-lg bg-[#142620]/50 border border-[#f59e0b]/15 mb-2 cursor-pointer hover:border-[#f59e0b]/40 transition-all" onclick="focusNode('${n.id}')">
+      <div class="text-sm font-semibold mb-1 text-[#c6ddd5]">${hl}</div>
+      <div class="text-[10px] opacity-70 flex items-center gap-1" style="color:${tCol}"><span class="w-1.5 h-1.5 rounded-full" style="background:${tCol}"></span>${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}</div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('search-input').addEventListener('input',e=>handleSearch(e.target.value));
+
+function focusNode(id) {
+  const nd=G.nodes.find(n=>n.id===id); if(!nd) return; selectNode(nd);
+  camera.x=canvas.width/2-nd.x*camera.s-150; camera.y=canvas.height/2-nd.y*camera.s;
+}
+function selectNode(nd) {
+  selected=nd; switchTab('detail');
+  document.getElementById('no-sel').classList.add('hidden');
+  const det=document.getElementById('det'); det.classList.remove('hidden'); det.classList.add('flex');
+  let col=COL[nd.type]||'#888';
+  let tTitle=nd.type==='event'?'핵심 사건':nd.type==='cause'?'발생 원인':'파급 효과';
+  if(nd.type==='effect'&&nd.sentiment==='neg'){ col='#f87171'; tTitle='부정적 파급 효과'; }
+  const linksIn=G.edges.filter(e=>e.to===nd.id).map(e=>G.nodes.find(n=>n.id===e.from)).filter(Boolean);
+  const linksOut=G.edges.filter(e=>e.from===nd.id).map(e=>G.nodes.find(n=>n.id===e.to)).filter(Boolean);
+  let tagsHTML='';
+  if(nd.depth) tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border" style="border-color:${col}44;color:${col}">${nd.depth}</span>`;
+  if(nd.type==='effect'){
+    if(nd.sentiment==='pos') tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border border-[#34d399]/40 text-[#34d399] font-bold">+ 긍정적</span>`;
+    if(nd.sentiment==='neg') tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border border-[#f87171]/40 text-[#f87171] font-bold">- 리스크</span>`;
+  }
+  det.innerHTML=`
+    <div class="space-y-1">
+      <span class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2" style="color:${col}">
+        <span class="w-2 h-2 rounded-full animate-pulse" style="background:${col}"></span>${tTitle}
+      </span>
+      <h2 class="font-['Manrope'] font-bold text-lg text-[#c6ddd5] leading-tight mt-1 mb-2">${nd.label}</h2>
+      <div class="flex gap-1 mb-3">${tagsHTML}</div>
+    </div>
+    <div class="p-3 rounded-lg bg-[#142620]/50 border border-[#f59e0b]/10 shadow-inner">
+      <p class="text-[#7aada0] text-xs leading-relaxed">${nd.desc||'설명이 없습니다.'}</p>
+    </div>
+    <div class="space-y-4 mt-2 flex-grow">
+      ${linksIn.length?`<div><span class="text-[10px] uppercase font-bold text-[#f59e0b] tracking-widest block mb-2 opacity-80">이전 연결</span><div class="flex flex-wrap gap-1.5">${linksIn.map(l=>`<span class="px-2 py-1 rounded-md bg-[#f59e0b]/10 border border-[#f59e0b]/20 text-[10px] text-[#f59e0b] cursor-pointer hover:bg-[#f59e0b]/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}</div></div>`:''}
+      ${linksOut.length?`<div><span class="text-[10px] uppercase font-bold text-[#34d399] tracking-widest block mb-2 opacity-80">이후 연결</span><div class="flex flex-wrap gap-1.5">${linksOut.map(l=>`<span class="px-2 py-1 rounded-md bg-[#34d399]/10 border border-[#34d399]/20 text-[10px] text-[#34d399] cursor-pointer hover:bg-[#34d399]/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}</div></div>`:''}
+    </div>
+    <button onclick="confirmDelete()" class="mt-6 w-full py-2.5 rounded-lg border border-[#f87171]/30 text-[#f87171] font-bold text-xs hover:bg-[#f87171]/10 active:scale-95 duration-200 flex justify-center items-center gap-1">
+      <span class="material-symbols-outlined text-[16px]">delete</span> 노드 삭제
+    </button>
+  `;
+}
+function selectNodeById(id){ const nd=G.nodes.find(n=>n.id===id); if(nd) selectNode(nd); }
+
+function switchTab(t) {
+  ['detail','search','list'].forEach(tab => {
+    document.getElementById('tab-'+tab).classList.toggle('hidden', tab!==t);
+    document.getElementById('tab-'+tab).classList.toggle('flex', tab===t);
+  });
+  ['detail','list','search'].forEach(tab => {
+    const btn=document.getElementById('tab-btn-'+tab);
+    btn.className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#7aada0] hover:bg-[#1c3028]';
+  });
+  document.getElementById('tab-btn-'+t).className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#f59e0b]/15 text-[#f59e0b]';
+}
+
+function toggleFilter(t) {
+  if(activeFilter===t) activeFilter=null; else activeFilter=t;
+  if(activeFilter){ selected=null; document.getElementById('no-sel').classList.remove('hidden'); document.getElementById('det').classList.add('hidden'); }
+  const btns={'cause':{ids:['flt-cause','flt-cause-m'],c:'#f59e0b'},'event':{ids:['flt-event','flt-event-m'],c:'#34d399'},'effect':{ids:['flt-effect','flt-effect-m'],c:'#60a5fa'}};
+  Object.keys(btns).forEach(k=>{
+    btns[k].ids.forEach(id=>{
+      const b=document.getElementById(id); if(!b) return;
+      if(k===activeFilter){ b.style.backgroundColor=btns[k].c+'33'; b.style.color=btns[k].c; }
+      else { b.style.backgroundColor='transparent'; b.style.color=''; }
+    });
+  });
+}
+
+function showCtxMenu(x,y){ ctxMenu.style.display='block'; ctxMenu.style.left=Math.min(x,window.innerWidth-150)+'px'; ctxMenu.style.top=Math.min(y,window.innerHeight-100)+'px'; }
+function hideCtxMenu(){ ctxMenu.style.display='none'; }
+function focusSelected(){ hideCtxMenu(); if(selected) selectNode(selected); }
+function confirmDelete(){
+  hideCtxMenu(); if(!selected) return; pendingDelete=selected;
+  const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;
+  document.getElementById('modal-msg').textContent=`"${selected.label}" 관련 엣지 ${connCount}개가 함께 삭제됩니다.`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('show'); pendingDelete=null; }
+function executeDelete(){
+  if(!pendingDelete) return; const id=pendingDelete.id;
+  G.nodes=G.nodes.filter(n=>n.id!==id); G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);
+  if(selected&&selected.id===id){ selected=null; document.getElementById('no-sel').classList.remove('hidden'); document.getElementById('det').classList.add('hidden'); }
+  pendingDelete=null; closeModal(); updateStats(); updateListTab(); hasChanges=true;
+  document.getElementById('save-btn').style.display='block'; startSim(.4);
+}
+
+function updateStats(){
+  document.getElementById('hstats-nodes').textContent=`Nodes: ${G.nodes.length}`;
+  document.getElementById('hstats-edges').textContent=`Edges: ${G.edges.length}`;
+}
+function updateListTab(){
+  const listEl=document.getElementById('tab-list');
+  const causes=G.nodes.filter(n=>n.type==='cause'), events=G.nodes.filter(n=>n.type==='event'), effects=G.nodes.filter(n=>n.type==='effect');
+  const renderCat=(title,items,color)=>{
+    if(!items.length) return '';
+    return `<div>
+      <div class="text-[11px] uppercase font-bold tracking-widest mb-3 flex items-center gap-2" style="color:${color}">
+        <span class="w-1.5 h-1.5 rounded-full" style="background:${color}"></span>${title}<span class="opacity-50 text-[10px]">(${items.length})</span>
+      </div>
+      <div class="flex flex-col gap-2 pl-3 border-l pb-4" style="border-color:${color}33">
+        ${items.map(n=>{
+          let label=n.label;
+          if(n.type==='effect') label=(n.sentiment==='neg'?'<span style="color:#f87171">▼</span> ':'<span style="color:#60a5fa">▲</span> ')+label;
+          return `<div class="text-[13px] text-[#7aada0] hover:text-[#c6ddd5] cursor-pointer transition-colors leading-snug break-keep" onclick="focusNode('${n.id}')" title="${n.label}">${label}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  };
+  listEl.innerHTML=renderCat('발생 원인 (Cause)',causes,COL['cause'])+renderCat('핵심 사건 (Event)',events,COL['event'])+renderCat('파급 효과 (Effect)',effects,COL['effect']);
+}
+
+function fitView(){
+  if(!G.nodes.length) return;
+  const xs=G.nodes.map(n=>n.x), ys=G.nodes.map(n=>n.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),pad=80;
+  const cw=canvas.width, ch=canvas.height;
+  camera.s=Math.min((cw-pad*2)/Math.max(maxX-minX,1),(ch-pad*2)/Math.max(maxY-minY,1),1.5);
+  camera.x=pad-minX*camera.s+((cw-pad*2)-(maxX-minX)*camera.s)/2;
+  camera.y=pad-minY*camera.s+((ch-pad*2)-(maxY-minY)*camera.s)/2;
+}
+function zoom(f){ const cx=canvas.width/2,cy=canvas.height/2; camera.x=cx-(cx-camera.x)*f; camera.y=cy-(cy-camera.y)*f; camera.s=Math.max(.15,Math.min(5,camera.s*f)); }
+function toggleLabels(){ showL=!showL; }
+
+function saveChanges(){
+  const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),updated:new Date().toISOString().slice(0,10)}};
+  const jsContent="window.DATA = "+JSON.stringify(out,null,2)+";";
+  const blob=new Blob([jsContent],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  const scriptName=document.getElementById('data-script').getAttribute('src');
+  const a=document.createElement('a'); a.href=url; a.download=scriptName; a.click(); URL.revokeObjectURL(url);
+  hasChanges=false; document.getElementById('save-btn').style.display='none';
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='tempus_graph_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url);
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.key==='Delete'||e.key==='Backspace')&&selected&&document.activeElement===document.body){ e.preventDefault(); confirmDelete(); }
+  if(e.key==='Escape'){ closeModal(); hideCtxMenu(); if(searchQuery){ document.getElementById('search-input').value=''; handleSearch(''); } }
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){ e.preventDefault(); document.getElementById('search-input').focus(); switchTab('search'); }
+});
+
+loadData(); if(!raf) loop();
 </script>
 </body>
 </html>

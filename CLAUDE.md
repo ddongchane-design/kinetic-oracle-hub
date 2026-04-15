@@ -141,4 +141,5 @@ Vercel이 GitHub main 브랜치를 감지해 자동 배포. 완료까지 1~2분 
 | `bmnr_graph.html` | BMNR(Bitmine) ETH 트레저리 전략 | `bmnr_data.js` |
 | `iran_graph.html` | 이란전쟁 매크로 분석 | `iran_data.js` |
 | `space_graph.html` | 우주산업 분석 | `space_data.js` |
+| `tempus_graph.html` | Tempus AI 헬스케어 AI 플랫폼 | `tempus_data.js` |
 | `generic_graph.html` | 범용/테스트 | `data.js` |
