@@ -118,6 +118,29 @@ knowledge-graph/
 - **인사이트 패널 너비**: `lg:w-80`
 - **body overflow**: `overflow: hidden` 사용 금지 (모바일 스크롤 차단됨)
 - **컬러 테마**: 그래프별 독립 유지 (통일 불필요)
+- **템플릿 기준**: 새 그래프는 반드시 `space_graph.html`을 복사해서 시작
+
+### 노드 배치 간격 (신규 그래프 필수 적용)
+
+새로 추가하는 그래프의 `initPositions()` 함수는 아래 수치를 사용:
+
+```javascript
+// ✅ 신규 그래프 표준 (space_graph.html 기준)
+causes.forEach((n,i) => {
+  if(n.x==null) {
+    n.x = W * 0.18;  // 더 바깥쪽 (기존 0.2 → 0.18)
+    n.y = 80 + i*(H-160)/Math.max(causes.length-1,1) + (Math.random()-.5)*25;
+  }
+});
+effects.forEach((n,i) => {
+  if(n.x==null) {
+    n.x = W * 0.82;  // 더 바깥쪽 (기존 0.8 → 0.82)
+    n.y = 80 + i*(H-160)/Math.max(effects.length-1,1) + (Math.random()-.5)*25;
+  }
+});
+```
+
+> 기존 그래프(bmnr, iran)는 0.2 / 0.8 그대로 유지. 변경 금지.
 
 ---
 
