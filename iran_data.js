@@ -28,7 +28,22 @@ window.DATA = {
     { "id": "ef_israel_strikes", "type": "effect", "label": "이스라엘 공습/변수 지속", "desc": "휴전 기간에도 이스라엘이 레바논 및 대이란 후방 교란 작전을 지속하며 언제 깨질지 모르는 살얼음판.", "depth": "단기", "sentiment": "neg", "x": null, "y": null },
     { "id": "ef_pressure_max", "type": "effect", "label": "트럼프/Vance 초강경 압박", "desc": "미 군함을 파병 배치하여 무력 압박. 트럼프 행정부는 '양보 없는 항복'만을 요구하며 최후의 고사 작전 돌입.", "depth": "중기", "sentiment": "neg", "x": null, "y": null },
     { "id": "ef_iran_collapse", "type": "effect", "label": "독재 정권 붕괴 임계점", "desc": "[핵심] 미-이스라엘 외부 군사 타격과, 인터넷이 차단된 혹독한 환경에도 피를 흘리며 맞서는 내부 시위대의 양동 작전 성과 가시화.", "depth": "중기", "sentiment": "pos", "x": null, "y": null },
-    { "id": "ef_iran_alliance", "type": "effect", "label": "새로운 이란, 민주/우방 연대", "desc": "정권 전복 및 민주 혁명 성공 시, 70년대 절친 국가였던 한국과 미국을 향한 경제 개방 및 지정학적 리스크 완전 해소 기대.", "depth": "장기", "sentiment": "pos", "x": null, "y": null }
+    { "id": "ef_iran_alliance", "type": "effect", "label": "새로운 이란, 민주/우방 연대", "desc": "정권 전복 및 민주 혁명 성공 시, 70년대 절친 국가였던 한국과 미국을 향한 경제 개방 및 지정학적 리스크 완전 해소 기대.", "depth": "장기", "sentiment": "pos", "x": null, "y": null },
+
+    // 5. 전후(Post-War) 체제 및 매크로 대전환 (N차 파급효과 연쇄)
+    { "id": "ev_iran_war_end", "type": "event", "label": "종전 선언 & 임시정부", "desc": "독재 정권 완전 붕괴 후 범국민 임시정부 수립 및 전면전 공식 종료 선언.", "x": null, "y": null },
+    { "id": "ef_oil_stabilize", "type": "effect", "label": "유가 정상화 (1차 파급)", "desc": "가장 큰 지정학적 리스크 소멸로 호르무즈 해협 완전 뚫리며 WTI 60~70불대 급안정.", "depth": "단기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_inf_down", "type": "effect", "label": "글로벌 인플레 하락 (2차 파급)", "desc": "에너지 가격(1차 파급) 안정의 결과로 끈적하던 인플레이션 지표가 극적으로 하락 전환.", "depth": "중기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_rate_cut", "type": "effect", "label": "연준 금리 빅컷 (3차 파급)", "desc": "물가 안정(2차 파급) 달성 가시화로 연준과 글로벌 중앙은행들 동시다발적 릴레이 금리 인하.", "depth": "장기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_tech_rally", "type": "effect", "label": "빅테크·코인 투자 랠리 (N차)", "desc": "금리 인하(3차) 발 글로벌 거시 유동성 폭발로 위험자산(나스닥, 비트코인 등) 강력한 안도 랠리.", "depth": "장기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_rebuild_project", "type": "effect", "label": "전후 재건 펀드 발족 (1차 파급)", "desc": "임시정부 출범 직후 미국의 마샬 플랜급 황폐화된 이란 인프라 복구용 거시 펀드 조성.", "depth": "단기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_const_boom", "type": "effect", "label": "K-건설/기계 특수 (2차/수혜)", "desc": "전후 복구 플랜(1차) 발주로 과거 중동 신화를 이끌었던 한국 건설사 및 인프라 기업 대형 수주 잭팟.", "depth": "장기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_airline_profit", "type": "effect", "label": "항공/해운주 실적 턴 (2차/수혜)", "desc": "유가 폭락(1차)에 따른 막대한 유류비 절감과 중동 영공 정상화로 항운사 이익 스프레드 폭발.", "depth": "중기", "sentiment": "pos", "x": null, "y": null },
+
+    // 6. 에너지 안보 패러다임 전환 (대체 에너지 슈퍼사이클)
+    { "id": "ef_energy_security", "type": "effect", "label": "국가 에너지 안보 위기 (1차 파급)", "desc": "호르무즈 봉쇄 등 화석연료 국소 의존의 치명적 약점이 노출되며 각국의 에너지 안보 정책 전면 재검토.", "depth": "단기", "sentiment": "neg", "x": null, "y": null },
+    { "id": "ef_alt_energy_demand", "type": "effect", "label": "신재생/원전 수요 폭발 (2차 파급)", "desc": "단순한 친환경을 넘어 '국가 생존 안보' 차원에서 태양광, 풍력, 차세대 원전(SMR)으로의 구조적 탈바꿈(Structural Shift).", "depth": "중기", "sentiment": "pos", "x": null, "y": null },
+    { "id": "ef_green_invest_boom", "type": "effect", "label": "대체 에너지 슈퍼사이클 (3차/결론)", "desc": "신재생 인프라 확충과 맞물려 우라늄, 전력망(그리드) 장비 관련주 등 대체 에너지 테마 장기 대세 상승장 돌입.", "depth": "장기", "sentiment": "pos", "x": null, "y": null }
   ],
   "edges": [
     // 1. 매크로 및 시장 충격망
@@ -63,7 +78,24 @@ window.DATA = {
     { "from": "ev_iran_leak", "to": "ef_iran_collapse", "shared": true, "label": "적(이스라엘)의 공습을 정권 타도에 역이용" },
     { "from": "ef_pressure_max", "to": "ef_iran_collapse", "shared": true, "label": "외부 물리 타격 + 내부 시위 샌드위치" },
     { "from": "ef_iran_collapse", "to": "ef_iran_alliance", "label": "수십년간 억눌린 자유주의 정부 재건축" },
-    { "from": "ef_kr_economy", "to": "ef_iran_alliance", "shared": false, "label": "우방 교역 복구로 한국 스태그 완화 기대" }
+    { "from": "ef_kr_economy", "to": "ef_iran_alliance", "shared": false, "label": "우방 교역 복구로 한국 스태그 완화 기대" },
+
+    // 4. 전후(Post-War) 랠리 연쇄망 (N차 파급효과)
+    { "from": "ef_iran_alliance", "to": "ev_iran_war_end", "label": "새로운 정권 이양 및 종전" },
+    { "from": "ev_iran_war_end", "to": "ef_oil_stabilize", "label": "[1차 연쇄] 전쟁 리스크 완전 제거" },
+    { "from": "ef_oil_stabilize", "to": "ef_inf_down", "shared": true, "label": "[2차 연쇄] 유가 하락이 부른 수입물가 붕괴" },
+    { "from": "ef_inf_down", "to": "ef_rate_cut", "shared": true, "label": "[3차 연쇄] 릴레이 금리 인하 명분 확보" },
+    { "from": "ef_rate_cut", "to": "ef_tech_rally", "shared": true, "label": "[N차 분기: 투자길목] 거대 유동성 스위치 ON" },
+    { "from": "ev_iran_war_end", "to": "ef_rebuild_project", "label": "[1차 분기] 인프라 정상화 최우선 과제" },
+    { "from": "ef_rebuild_project", "to": "ef_const_boom", "shared": true, "label": "[2차 분기: 투자길목] 韓 입찰 참여 확정적" },
+    { "from": "ef_oil_stabilize", "to": "ef_airline_profit", "shared": false, "label": "[2차 분기: 투자길목] 항공기 유류비 즉각 절감" },
+    { "from": "ef_kr_economy", "to": "ef_const_boom", "shared": true, "label": "수출 절벽 우려 완전 타개" },
+
+    // 5. 에너지 패러다임 전환 연쇄망 (고통이 부른 진화)
+    { "from": "ev_hormuz_block", "to": "ef_energy_security", "shared": true, "label": "[1차 연쇄] 화석 연료 공급망의 아킬레스건 체감" },
+    { "from": "ef_oil_spike", "to": "ef_energy_security", "shared": true, "label": "[1차 연쇄] 석유 의존의 파멸적 거시 경제 데미지" },
+    { "from": "ef_energy_security", "to": "ef_alt_energy_demand", "label": "[2차 연쇄] 단기 비용을 무시한 강제적 패러다임 시프트" },
+    { "from": "ef_alt_energy_demand", "to": "ef_green_invest_boom", "label": "[3차/투자길목] 친환경·인프라·그리드 장기 메가 트렌드 형성" }
   ],
   "meta": {
     "created": "2026-04-12",
