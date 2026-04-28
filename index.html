@@ -172,15 +172,15 @@
     ];
 
     function renderEtfChips(graphUrl) {
-      const etfs = window.ETF_DB && window.ETF_DB[graphUrl];
-      if (!etfs || etfs.length === 0) return '';
+      const themes = window.ETF_DB && window.ETF_DB[graphUrl];
+      if (!themes || themes.length === 0) return '';
       return `
         <div class="mt-3 pt-3 border-t border-slate-700/30">
           <p class="text-[9px] text-slate-600 mb-1.5 font-mono uppercase tracking-widest flex items-center gap-1">
-            <span class="material-symbols-outlined text-[11px]">candlestick_chart</span> 관련 ETF
+            <span class="material-symbols-outlined text-[11px]">candlestick_chart</span> ETF 투자 테마
           </p>
           <div class="flex flex-wrap gap-1.5">
-            ${etfs.map(e => `<span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:border-slate-500 transition-colors cursor-default" title="${e.category}">${e.name} <span class="text-slate-600">${e.ticker}</span></span>`).join('')}
+            ${themes.map(t => `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:border-slate-500 transition-colors cursor-default">${t}</span>`).join('')}
           </div>
         </div>
       `;
