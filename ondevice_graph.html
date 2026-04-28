@@ -1,0 +1,992 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>온디바이스 & 피지컬 AI 분석 | Kinetic Oracle</title>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6CXHMKPHPV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6CXHMKPHPV');
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "background":               "#05091a",
+        "surface":                  "#05091a",
+        "surface-container-lowest": "#030611",
+        "surface-container-low":    "#0a1128",
+        "surface-container":        "#0f1a34",
+        "surface-container-high":   "#162040",
+        "surface-bright":           "#1e2d50",
+        "surface-variant":          "#1a2744",
+        "outline":                  "#4a6fa5",
+        "on-background":            "#c8d8ff",
+        "on-surface":               "#c8d8ff",
+        "on-surface-variant":       "#8aaad8",
+        "inverse-surface":          "#c8d8ff",
+        "primary":                  "#fb923c",
+        "on-primary":               "#001a45",
+        "primary-fixed":            "#d0e8ff",
+        "secondary":                "#f59e0b",
+        "secondary-fixed":          "#fff3cd",
+        "tertiary":                 "#34d399",
+        "error":                    "#f87171"
+      },
+      "fontFamily": { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] }
+    }
+  }
+};
+</script>
+<style>
+  /* ── Base ── */
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    background-color: #05091a;
+    color: #c8d8ff;
+  }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* ── Starfield ── */
+  #starfield {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 60% 30%, rgba(251,146,60,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(52,211,153,0.04) 0%, transparent 55%);
+  }
+  #starfield canvas { width: 100%; height: 100%; }
+
+  /* ── Canvas ── */
+  #gc { width:100%; height:100%; display:block; cursor:grab; outline:none; }
+  #gc:active { cursor:grabbing; }
+
+  /* ── Tooltip ── */
+  #tip {
+    position: absolute;
+    background: rgba(10,17,40,0.97);
+    border: 1px solid rgba(251,146,60,0.25);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 12px;
+    max-width: 230px;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 0 30px rgba(251,146,60,0.15), 0 8px 24px rgba(0,0,0,.7);
+    backdrop-filter: blur(12px);
+  }
+  #tip .tt { font-weight: 700; color: #c8d8ff; margin-bottom: 3px; font-size: 13px; font-family:'Noto Sans KR'; }
+  #tip .tc { font-size: 10px; margin-bottom: 5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  #tip .td { color: #8aaad8; line-height: 1.6; font-size: 11px; font-family:'Noto Sans KR'; }
+
+  /* ── Context Menu ── */
+  #ctx-menu {
+    position: fixed;
+    background: #0f1a34;
+    border: 1px solid rgba(251,146,60,0.2);
+    border-radius: 10px;
+    padding: 6px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    display: none;
+    min-width: 140px;
+    color: #c8d8ff;
+  }
+  .ctx-item { padding:7px 12px; border-radius:6px; font-size:12px; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:8px; }
+  .ctx-item:hover { background: #1a2744; }
+  .ctx-item.danger { color: #f87171; }
+  .ctx-item.danger:hover { background: rgba(248,113,113,.1); }
+
+  /* ── Modal ── */
+  #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
+  #modal-overlay.show { display:flex; }
+  #modal { background:#0f1a34; border:1px solid rgba(251,146,60,0.2); border-radius:14px; padding:24px; max-width:320px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.8); color:#c8d8ff; }
+  #modal h3 { font-size:15px; margin-bottom:8px; font-family:'Noto Sans KR'; }
+  #modal p { font-size:12px; color:#8aaad8; line-height:1.7; margin-bottom:20px; font-family:'Noto Sans KR'; }
+  .modal-btns { display:flex; gap:8px; }
+  .modal-btns button { flex:1; padding:8px; border-radius:7px; font-size:12px; cursor:pointer; font-family:'Noto Sans KR'; border:1px solid rgba(74,111,165,0.4); background:transparent; color:#8aaad8; transition:all .15s; }
+  .modal-btns button:hover { background:#1a2744; color:#c8d8ff; }
+  .modal-btns button.confirm { border-color:rgba(248,113,113,.4); color:#f87171; }
+  .modal-btns button.confirm:hover { background:rgba(248,113,113,.1); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:rgba(251,146,60,0.2); border-radius:2px; }
+
+  /* ── Glow Animations ── */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(251,146,60,0.4); }
+    50% { box-shadow: 0 0 20px rgba(251,146,60,0.8); }
+  }
+  @keyframes orbit-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .orbit-icon { animation: orbit-spin 12s linear infinite; display: inline-block; }
+  .glow-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+  /* ── Header ── */
+  header {
+    background: rgba(5,9,26,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(251,146,60,0.1);
+    box-shadow: 0 4px 32px rgba(251,146,60,0.06);
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    background: rgba(10,17,40,0.85);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(251,146,60,0.08);
+  }
+
+  /* ── Insight Panel ── */
+  #insight-panel {
+    background: rgba(9,15,35,0.92);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(251,146,60,0.08);
+  }
+
+  /* ── Event Badge Colors ── */
+  .badge-event   { background: rgba(251,146,60,0.15);  color: #fb923c;  border: 1px solid rgba(251,146,60,0.3);  }
+  .badge-cause   { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .badge-effect  { background: rgba(52,211,153,0.15);  color: #34d399;  border: 1px solid rgba(52,211,153,0.3);  }
+
+  /* ── Node detail card ── */
+  .det-card {
+    background: rgba(22,32,64,0.5);
+    border: 1px solid rgba(251,146,60,0.1);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  /* ── Zoom controls ── */
+  .zoom-ctrl {
+    background: rgba(10,17,40,0.85);
+    border: 1px solid rgba(251,146,60,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+  }
+
+  /* ── Filter bar active state ── */
+  .flt-btn { transition: all .2s; }
+
+  /* ── Neon line ── */
+  .neon-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(251,146,60,0.4), transparent);
+    margin: 8px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Starfield Background ── -->
+<div id="starfield">
+  <canvas id="star-canvas"></canvas>
+</div>
+
+<!-- ══════════════════  HEADER  ══════════════════ -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 font-['Manrope'] tracking-tight">
+  <!-- Left: Logo + Nav -->
+  <div class="flex items-center gap-6">
+    <a href="index.html" class="flex items-center gap-1.5 text-slate-400 hover:text-[#fb923c] transition-colors cursor-pointer" title="홈으로 돌아가기">
+      <span class="material-symbols-outlined text-[22px]">home</span>
+      <span class="text-sm font-bold">Hub</span>
+    </a>
+    <span class="text-slate-700 font-light">/</span>
+    <div class="flex items-center gap-2">
+      <span class="text-lg font-bold text-[#fb923c] cursor-pointer hover:text-[#fdba74] transition-colors" onclick="loadData()" title="그래프 새로고침">
+        🤖 온디바이스 AI 분석
+      </span>
+      <span class="text-[10px] font-mono text-[#fb923c]/40 bg-[#fb923c]/5 border border-[#fb923c]/20 px-2 py-0.5 rounded-full tracking-widest">ON-DEVICE</span>
+    </div>
+  </div>
+
+  <!-- Center: Filter Bar (desktop) -->
+  <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 bg-[#0a1128]/80 p-1 rounded-full border border-[#fb923c]/15 shadow-sm" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#8aaad8] hover:bg-[#f59e0b]/10 hover:text-[#f59e0b] transition-all">
+      발생 원인
+    </button>
+    <button onclick="toggleFilter('event')" id="flt-event"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#8aaad8] hover:bg-[#fb923c]/10 hover:text-[#fb923c] transition-all">
+      핵심 사건
+    </button>
+    <button onclick="toggleFilter('effect')" id="flt-effect"
+      class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#8aaad8] hover:bg-[#34d399]/10 hover:text-[#34d399] transition-all">
+      파급 효과
+    </button>
+  </div>
+
+  <!-- Right: Stats + Search + Buttons -->
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#0a1128]/80 border border-[#fb923c]/10 text-xs font-mono">
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#fb923c] animate-pulse shadow-[0_0_6px_rgba(251,146,60,0.8)]"></span>
+        <span id="hstats-nodes" class="text-[#8aaad8]">Nodes: 0</span>
+      </div>
+      <div class="w-px h-3 bg-[#fb923c]/20"></div>
+      <span id="hstats-edges" class="text-[#8aaad8]">Edges: 0</span>
+    </div>
+    <div class="relative hidden md:flex">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-40 text-[#fb923c]">search</span>
+      <input id="search-input"
+        class="bg-[#0a1128]/90 border border-[#fb923c]/15 rounded-full pl-9 pr-4 py-1.5 text-sm w-52 focus:ring-1 focus:ring-[#fb923c]/40 text-[#c8d8ff] placeholder-[#8aaad8]/40 transition-all outline-none"
+        placeholder="노드 검색..." type="text"/>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="save-btn" onclick="saveChanges()"
+        class="hidden active:scale-95 duration-200 text-[#34d399] font-bold text-sm px-3 py-1.5 bg-[#34d399]/10 rounded-full border border-[#34d399]/30 hover:bg-[#34d399]/20 transition-all" style="font-family:'Noto Sans KR'">
+        💾 저장하기
+      </button>
+      <button onclick="exportJSON()" class="active:scale-95 duration-200 text-[#8aaad8] hover:text-[#fb923c] transition-colors" title="JSON 내보내기">
+        <span class="material-symbols-outlined text-[20px]">download</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════  MAIN  ══════════════════ -->
+<main class="relative w-full min-h-screen lg:h-screen bg-transparent pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden" style="z-index:1">
+
+  <!-- Mobile Filter Bar -->
+  <div class="flex md:hidden items-center justify-center gap-1 bg-[#0a1128]/90 px-2 py-2 border-b border-[#fb923c]/10 flex-shrink-0" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#8aaad8] hover:text-[#f59e0b] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#8aaad8] hover:text-[#fb923c] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#8aaad8] hover:text-[#34d399] transition-all">파급 효과</button>
+  </div>
+
+  <!-- ── Graph Canvas ── -->
+  <div class="w-full lg:w-auto lg:flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
+    <canvas id="gc" class="touch-none"></canvas>
+
+    <!-- Zoom Controls -->
+    <div class="absolute bottom-6 left-6 z-40 flex items-center gap-1 p-1.5 zoom-ctrl shadow-2xl">
+      <button onclick="zoom(1.2)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1e2d50] text-[#c8d8ff] transition-all" title="Zoom In">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+      </button>
+      <div class="w-px h-4 bg-[#fb923c]/15"></div>
+      <button onclick="zoom(0.8)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1e2d50] text-[#c8d8ff] transition-all" title="Zoom Out">
+        <span class="material-symbols-outlined text-[18px]">remove</span>
+      </button>
+      <div class="w-px h-4 bg-[#fb923c]/15"></div>
+      <button onclick="fitView()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1e2d50] text-[#c8d8ff] transition-all" title="Fit">
+        <span class="material-symbols-outlined text-[18px]">center_focus_strong</span>
+      </button>
+      <button onclick="toggleLabels()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1e2d50] text-[#c8d8ff] transition-all" title="Labels">
+        <span class="material-symbols-outlined text-[18px]">label</span>
+      </button>
+    </div>
+
+    <!-- Status badge (hidden) -->
+    <div class="absolute bottom-6 right-6 z-40" style="display:none">
+      <span id="status" class="text-xs font-mono text-[#8aaad8]">Ready</span>
+    </div>
+  </div>
+
+  <!-- ── Left Inspector Sidebar ── -->
+  <aside class="w-full lg:w-72 flex-shrink-0 h-auto lg:h-full min-h-[40vh] flex flex-col p-5 gap-4 z-40 order-2 lg:order-1">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-xl overflow-hidden bg-[#fb923c]/10 border border-[#fb923c]/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[#fb923c] text-xl">developer_board</span>
+      </div>
+      <div>
+        <h3 class="text-[15px] font-bold text-[#c8d8ff]">Inspector</h3>
+        <p class="text-[10px] uppercase tracking-wider text-[#8aaad8]/60">ON-DEVICE Graph Explorer</p>
+      </div>
+    </div>
+
+    <div class="neon-line flex-shrink-0"></div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1.5 p-1 bg-[#0a1128]/80 rounded-lg flex-shrink-0 border border-[#fb923c]/08" style="font-family:'Noto Sans KR'">
+      <button id="tab-btn-detail" onclick="switchTab('detail')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#fb923c]/15 text-[#fb923c]">상세 정보</button>
+      <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#8aaad8] hover:bg-[#1e2d50]">구조도</button>
+      <button id="tab-btn-search" onclick="switchTab('search')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#8aaad8] hover:bg-[#1e2d50]">검색</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="flex-grow flex flex-col overflow-y-auto overflow-x-hidden" style="font-family:'Noto Sans KR'">
+      <!-- Detail Tab -->
+      <div id="tab-detail" class="flex flex-col h-full">
+        <div id="no-sel" class="flex-1 flex flex-col items-center justify-center opacity-30 text-center gap-4 h-full">
+          <div class="w-16 h-16 rounded-full border border-[#fb923c]/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl text-[#fb923c]">developer_board</span>
+          </div>
+          <p class="text-sm text-[#8aaad8]">노드를 클릭하면<br>상세 정보가 나타납니다</p>
+        </div>
+        <div id="det" class="hidden flex-col gap-3 h-full pb-4"></div>
+      </div>
+      <!-- Search Tab -->
+      <div id="tab-search" class="hidden flex-col h-full">
+        <div id="search-results-list" class="flex flex-col gap-2">
+          <div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>
+        </div>
+      </div>
+      <!-- List Tab -->
+      <div id="tab-list" class="hidden flex-col h-full gap-4 pb-4 px-1"></div>
+    </div>
+  </aside>
+
+  <!-- ── Tooltip ── -->
+  <div id="tip"><div class="tt"></div><div class="tc"></div><div class="td"></div></div>
+  <!-- ── Context Menu ── -->
+  <div id="ctx-menu">
+    <div class="ctx-item" onclick="focusSelected()"><span class="material-symbols-outlined" style="font-size:16px">visibility</span> 상세 보기</div>
+    <div class="ctx-item danger" onclick="confirmDelete()"><span class="material-symbols-outlined" style="font-size:16px">delete</span> 노드 삭제</div>
+  </div>
+  <!-- ── Delete Modal ── -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <h3>노드를 삭제할까요?</h3>
+      <p id="modal-msg">이 노드와 연결된 엣지가 모두 삭제됩니다.</p>
+      <div class="modal-btns">
+        <button onclick="closeModal()">취소</button>
+        <button class="confirm" onclick="executeDelete()">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right Insight Panel ── -->
+  <div id="insight-panel" class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[40vh] z-40 flex flex-col p-5 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
+    <div class="flex items-center justify-between mb-5 pb-4 border-b border-[#fb923c]/10">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-[#f59e0b] text-[20px]">memory</span>
+        <h2 class="text-[15px] font-bold text-[#c8d8ff]">온디바이스 인사이트</h2>
+      </div>
+      <span class="text-[10px] font-mono text-[#fb923c]/40 bg-[#fb923c]/5 border border-[#fb923c]/15 px-2 py-0.5 rounded-full">LIVE</span>
+    </div>
+
+    <div id="insight-panel-content" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 pb-6">
+
+      <div class="bg-[#0f1a34]/80 border border-[#fb923c]/15 rounded-2xl p-4 hover:border-[#fb923c]/40 transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#fb923c]/10" onclick="focusNode('ev_od_1')">
+        <div class="flex justify-between items-start mb-2">
+          <div class="text-[10px] font-mono opacity-50 bg-black/30 px-2 py-0.5 rounded-md">2026.04</div>
+          <span class="material-symbols-outlined text-[14px] text-[#fb923c]/50">touch_app</span>
+        </div>
+        <h3 class="font-bold text-[#c8d8ff] text-[14px] mb-1.5 leading-snug">GPU → NPU 패러다임 전환</h3>
+        <p class="text-[11px] text-[#fb923c] font-semibold mb-3 border-l-2 border-[#fb923c]/40 pl-2">전성비 20배, AI 반도체의 대전환</p>
+        <p class="text-[12px] text-[#8aaad8] leading-relaxed">딥엑스의 KV캐시 하드웨어 최적화로 GPU 대비 전성비 20배 달성. AI가 AI 반도체를 설계하는 RAIN 프로젝트까지 등장하며 피지컬 AI 시대의 새 기준을 만들고 있습니다.</p>
+      </div>
+
+      <div class="bg-[#0f1a34]/80 border border-[#34d399]/15 rounded-2xl p-4 hover:border-[#34d399]/40 transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#34d399]/10" onclick="focusNode('ev_od_2')">
+        <div class="flex justify-between items-start mb-2">
+          <div class="text-[10px] font-mono opacity-50 bg-black/30 px-2 py-0.5 rounded-md">2026.03</div>
+          <span class="material-symbols-outlined text-[14px] text-[#34d399]/50">touch_app</span>
+        </div>
+        <h3 class="font-bold text-[#c8d8ff] text-[14px] mb-1.5 leading-snug">딥엑스·현대차 양산 채택</h3>
+        <p class="text-[11px] text-[#34d399] font-semibold mb-3 border-l-2 border-[#34d399]/40 pl-2">삼성 5nm 수율 90%, 8개국 30개 PO</p>
+        <p class="text-[12px] text-[#8aaad8] leading-relaxed">구동 온도 33.5도(체온 이하)의 팬리스 NPU가 현대차 딜리버리 로봇에 채택됐습니다. 한국 팹리스가 글로벌 피지컬 AI 공급망의 핵심으로 부상하고 있습니다.</p>
+      </div>
+
+      <div class="bg-[#0f1a34]/80 border border-[#f59e0b]/15 rounded-2xl p-4 hover:border-[#f59e0b]/40 transition-all cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#f59e0b]/10" onclick="focusNode('ev_od_3')">
+        <div class="flex justify-between items-start mb-2">
+          <div class="text-[10px] font-mono opacity-50 bg-black/30 px-2 py-0.5 rounded-md">2026.02</div>
+          <span class="material-symbols-outlined text-[14px] text-[#f59e0b]/50">touch_app</span>
+        </div>
+        <h3 class="font-bold text-[#c8d8ff] text-[14px] mb-1.5 leading-snug">바이두 오픈소스 AI 얼라이언스</h3>
+        <p class="text-[11px] text-[#f59e0b] font-semibold mb-3 border-l-2 border-[#f59e0b]/40 pl-2">1,000만 개발자 생태계 + 한국 NPU</p>
+        <p class="text-[12px] text-[#8aaad8] leading-relaxed">$100 미만 4W NPU가 $2,000 300W GPU보다 2~3배 효율적이라는 사실이 검증되며, 한국 NPU가 글로벌 오픈소스 피지컬 AI의 표준 하드웨어로 자리잡고 있습니다.</p>
+      </div>
+
+      <div class="bg-[#0f1a34]/80 border border-[#fb923c]/10 rounded-2xl p-4">
+        <div class="text-[10px] font-mono opacity-50 bg-black/30 inline-block px-2 py-0.5 rounded-md mb-2">분석 요약</div>
+        <h3 class="font-bold text-[#c8d8ff] text-[14px] mb-1.5 leading-snug">피지컬 AI 시장 2030 전망</h3>
+        <p class="text-[12px] text-[#8aaad8] leading-relaxed">2030년 약 1,280억 달러(170조 원) 규모로 성장 예측. 로봇·자율주행·드론·스마트팩토리 전 분야에서 온디바이스 NPU가 필수 인프라가 됩니다.</p>
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <div class="bg-[#fb923c]/8 border border-[#fb923c]/15 rounded-lg p-2 text-center">
+            <div class="text-[#fb923c] font-bold text-sm">$128B</div>
+            <div class="text-[10px] text-[#8aaad8]/70">2030 시장 규모</div>
+          </div>
+          <div class="bg-[#34d399]/8 border border-[#34d399]/15 rounded-lg p-2 text-center">
+            <div class="text-[#34d399] font-bold text-sm">20x</div>
+            <div class="text-[10px] text-[#8aaad8]/70">GPU 대비 전성비</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="ondevice_data.js" id="data-script"></script>
+<script>
+// ═══════════════════════════════════════════════
+//  STARFIELD  
+// ═══════════════════════════════════════════════
+(function() {
+  const sc = document.getElementById('star-canvas');
+  const sx = sc.getContext('2d');
+  let stars = [];
+  function resizeStar() {
+    sc.width = window.innerWidth; sc.height = window.innerHeight;
+    stars = [];
+    for(let i=0; i<220; i++) {
+      stars.push({
+        x: Math.random()*sc.width, y: Math.random()*sc.height,
+        r: Math.random()*1.4+0.2, o: Math.random()*0.6+0.1,
+        speed: Math.random()*0.15+0.02, phase: Math.random()*Math.PI*2
+      });
+    }
+  }
+  function drawStar(t) {
+    sx.clearRect(0,0,sc.width,sc.height);
+    stars.forEach(s=>{
+      const ao = s.o*(0.7+0.3*Math.sin(t*0.001*s.speed+s.phase));
+      sx.beginPath(); sx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      sx.fillStyle=`rgba(200,216,255,${ao})`; sx.fill();
+    });
+    requestAnimationFrame(drawStar);
+  }
+  window.addEventListener('resize', resizeStar);
+  resizeStar(); drawStar(0);
+})();
+
+// ═══════════════════════════════════════════════
+//  GRAPH ENGINE
+// ═══════════════════════════════════════════════
+const COL = { event: '#fb923c', cause: '#f59e0b', effect: '#34d399' };
+const RAD = { event: 26, cause: 17, effect: 15 };
+
+let G = {nodes:[], edges:[]};
+let camera = {x:0, y:0, s:1};
+let drag=null, pan=null, hovered=null, selected=null, showL=true;
+let raf=null, alpha=0;
+let searchQuery='';
+let searchMatches=[];
+let pendingDelete=null;
+let hasChanges=false;
+let activeFilter=null;
+
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+const tip = document.getElementById('tip');
+const ctxMenu = document.getElementById('ctx-menu');
+
+// Resize canvas
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
+window.addEventListener('resize', () => { resizeCanvas(); fitView(); });
+resizeCanvas();
+
+// ── Load ──
+async function loadData() {
+  try {
+    if (window.DATA) G = JSON.parse(JSON.stringify(window.DATA));
+    else G = {nodes:[], edges:[]};
+    G.nodes.forEach(n => { n.vx=0; n.vy=0; if(n.x==null){n.x=null; n.y=null;} });
+    initPositions();
+    updateStats();
+    updateListTab();
+    hasChanges = false;
+    document.getElementById('save-btn').style.display = 'none';
+    startSim(1.0);
+    setTimeout(fitView, 600);
+    window.focusNode = focusNode;
+  } catch(e) { console.error(e); }
+}
+
+// ── Position Init ──
+function initPositions() {
+  const W = canvas.width || 800;
+  const H = canvas.height || 600;
+  const events  = G.nodes.filter(n => n.type==='event');
+  const causes  = G.nodes.filter(n => n.type==='cause');
+  const effects = G.nodes.filter(n => n.type==='effect');
+
+  events.forEach((n,i) => {
+    if(n.x==null) {
+      n.x = W/2 + (i-(events.length-1)/2)*220 + (Math.random()-.5)*40;
+      n.y = H/2 + (Math.random()-.5)*60;
+    }
+    n.vx=0; n.vy=0;
+  });
+  causes.forEach((n,i) => {
+    if(n.x==null) {
+      n.x = W*0.18 + (Math.random()-.5)*50;
+      n.y = 80 + i*(H-160)/Math.max(causes.length-1,1) + (Math.random()-.5)*25;
+    }
+    n.vx=0; n.vy=0;
+  });
+  effects.forEach((n,i) => {
+    if(n.x==null) {
+      n.x = W*0.82 + (Math.random()-.5)*50;
+      n.y = 80 + i*(H-160)/Math.max(effects.length-1,1) + (Math.random()-.5)*25;
+    }
+    n.vx=0; n.vy=0;
+  });
+}
+
+// ── Simulation ──
+function startSim(a) { alpha=a; if(!raf) loop(); }
+function loop() {
+  if(alpha>0.003) { tick(); alpha*=0.965; }
+  draw();
+  raf = requestAnimationFrame(loop);
+}
+function tick() {
+  G.nodes.forEach(n => { n.vx*=0.74; n.vy*=0.74; });
+  for(let i=0; i<G.nodes.length; i++) {
+    for(let j=i+1; j<G.nodes.length; j++) {
+      const a=G.nodes[i], b=G.nodes[j];
+      const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+      const f=-3200/(d*d)*alpha;
+      const fx=dx/d*f, fy=dy/d*f;
+      a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+    }
+  }
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+    const tgt=e.shared?230:140;
+    const f=(d-tgt)*0.055*alpha;
+    const fx=dx/d*f, fy=dy/d*f;
+    a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+  });
+  const W=canvas.width, H=canvas.height;
+  G.nodes.forEach(n => {
+    n.x = Math.max(30, Math.min(W-30, n.x+n.vx));
+    n.y = Math.max(30, Math.min(H-30, n.y+n.vy));
+  });
+}
+
+// ── Draw ──
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(camera.x, camera.y);
+  ctx.scale(camera.s, camera.s);
+  const now = Date.now();
+
+  // ─ Edges ─
+  G.edges.forEach(e => {
+    const a=G.nodes.find(n=>n.id===e.from), b=G.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return;
+    const isConnSel = selected && (e.from===selected.id || e.to===selected.id);
+    const isConnFlt = activeFilter && (a.type===activeFilter || b.type===activeFilter);
+    const isConn    = selected ? isConnSel : (activeFilter ? isConnFlt : false);
+    const fadeOut   = selected ? !isConnSel : (activeFilter ? !isConnFlt : false);
+
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    let grad = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    let ca = COL[a.type]||'#fff', cb = COL[b.type]||'#fff';
+    let alphaHex = fadeOut ? '0d' : (e.shared ? 'bb' : '44');
+    if(isConn) alphaHex = 'ff';
+    grad.addColorStop(0, ca+alphaHex);
+    grad.addColorStop(1, cb+alphaHex);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = (isConn?2.5:(e.shared?1.5:0.9))/camera.s;
+    if(isConn) { ctx.shadowColor=cb; ctx.shadowBlur=14; }
+    ctx.setLineDash(e.shared?[5,5]:[]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.shadowBlur=0;
+
+    // Animated dot on active edge
+    if(isConn && !e.shared) {
+      const t=(now%1200)/1200;
+      const px=a.x+(b.x-a.x)*t, py=a.y+(b.y-a.y)*t;
+      ctx.beginPath(); ctx.arc(px,py,3.5/camera.s,0,Math.PI*2);
+      ctx.fillStyle='#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(px,py,9/camera.s,0,Math.PI*2);
+      ctx.fillStyle=cb+'66'; ctx.fill();
+    }
+
+    // Arrowhead
+    if(!e.shared) {
+      const ang=Math.atan2(b.y-a.y,b.x-a.x);
+      const r=(RAD[b.type]||15)+4;
+      const tx=b.x-Math.cos(ang)*r, ty=b.y-Math.sin(ang)*r;
+      ctx.beginPath();
+      ctx.moveTo(tx,ty);
+      ctx.lineTo(tx-11*Math.cos(ang-.4),ty-11*Math.sin(ang-.4));
+      ctx.lineTo(tx-11*Math.cos(ang+.4),ty-11*Math.sin(ang+.4));
+      ctx.fillStyle=cb+(fadeOut?'0d':(isConn?'ff':'77'));
+      ctx.fill();
+    }
+
+    // Shared edge label
+    if(e.shared && e.label && showL && !fadeOut) {
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      ctx.font='9.5px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle='rgba(200,216,255,0.7)';
+      ctx.textAlign='center';
+      ctx.fillText(e.label, mx, my-7);
+    }
+  });
+
+  // ─ Nodes ─
+  G.nodes.forEach(n => {
+    let r = RAD[n.type]||15;
+    const isH=hovered&&hovered.id===n.id;
+    const isS=selected&&selected.id===n.id;
+    const isMatch=searchQuery&&searchMatches.includes(n.id);
+    const isConnNodeSel = selected && (n.id===selected.id || G.edges.some(e=>(e.from===selected.id&&e.to===n.id)||(e.to===selected.id&&e.from===n.id)));
+    const isConnNodeFlt = activeFilter && (n.type===activeFilter || G.edges.some(e=>(e.from===n.id&&G.nodes.find(o=>o.id===e.to)?.type===activeFilter)||(e.to===n.id&&G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
+    const isConnNode = selected ? isConnNodeSel : (activeFilter ? isConnNodeFlt : false);
+    const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
+
+    const col = COL[n.type]||'#888';
+
+    // Search ring
+    if(isMatch) {
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+18,0,Math.PI*2);
+      ctx.fillStyle=col+'15'; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+11,0,Math.PI*2);
+      ctx.strokeStyle=col+'77'; ctx.lineWidth=1.5/camera.s; ctx.stroke();
+    }
+
+    // Hover / select rings
+    if(isH||isS) {
+      r*=1.14;
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+10,0,Math.PI*2);
+      ctx.fillStyle=col+'1a'; ctx.fill();
+    }
+    if(isS) {
+      r*=1.10;
+      ctx.beginPath(); ctx.arc(n.x,n.y,r+5,0,Math.PI*2);
+      ctx.strokeStyle=col; ctx.lineWidth=2/camera.s; ctx.stroke();
+      ctx.shadowColor=col; ctx.shadowBlur=20;
+    }
+
+    // Outer glow
+    let grd = ctx.createRadialGradient(n.x,n.y,r*0.4,n.x,n.y,r*2.2);
+    grd.addColorStop(0, col); grd.addColorStop(1, col+'00');
+    ctx.beginPath(); ctx.arc(n.x,n.y,r*2.2,0,Math.PI*2);
+    ctx.fillStyle=grd; ctx.globalAlpha=fadeOutNode?0.03:0.18; ctx.fill(); ctx.globalAlpha=1;
+
+    // Main circle
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.globalAlpha=fadeOutNode?0.12:(isH||isS?1:0.82); ctx.fill(); ctx.globalAlpha=1;
+    ctx.shadowBlur=0;
+
+    // Inner dot
+    ctx.beginPath(); ctx.arc(n.x,n.y,r*0.28,0,Math.PI*2);
+    ctx.fillStyle='#05091a'; ctx.globalAlpha=fadeOutNode?0.15:0.65; ctx.fill(); ctx.globalAlpha=1;
+
+    // Label
+    if(showL && !fadeOutNode) {
+      let lbl = n.label.length>13 ? n.label.slice(0,12)+'…' : n.label;
+      ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle = (isH||isS) ? '#fff' : 'rgba(200,216,255,0.82)';
+      ctx.textAlign='center';
+      ctx.fillText(lbl, n.x, n.y+r+15);
+    }
+  });
+
+  ctx.restore();
+}
+
+// ── Hit Test ──
+function nodeAt(x,y) {
+  const wx=(x-camera.x)/camera.s, wy=(y-camera.y)/camera.s;
+  for(let i=G.nodes.length-1; i>=0; i--) {
+    const n=G.nodes[i], r=(RAD[n.type]||15)+7;
+    if(Math.hypot(n.x-wx,n.y-wy)<r) return n;
+  }
+  return null;
+}
+
+// ── Mouse Events ──
+canvas.addEventListener('mousedown', e => {
+  if(e.button===2) return; hideCtxMenu();
+  const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y};
+  else pan={sx:x,sy:y,cx:camera.x,cy:camera.y};
+});
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  const nd=nodeAt(x,y);
+  if(nd) { selected=nd; showCtxMenu(e.clientX,e.clientY); }
+});
+canvas.addEventListener('mousemove', e => {
+  const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  if(drag) { drag.node.x=drag.nx+(x-drag.ox)/camera.s; drag.node.y=drag.ny+(y-drag.oy)/camera.s; return; }
+  if(pan) { camera.x=pan.cx+(x-pan.sx); camera.y=pan.cy+(y-pan.sy); return; }
+  const nd=nodeAt(x,y); hovered=nd||null; canvas.style.cursor=nd?'pointer':'grab';
+  if(nd) {
+    tip.style.display='block';
+    tip.style.left=Math.min(e.clientX+16,window.innerWidth-240)+'px';
+    tip.style.top=Math.max(e.clientY+12,10)+'px';
+    tip.querySelector('.tt').textContent=nd.label;
+    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')};
+    const tc=tip.querySelector('.tc');
+    tc.textContent=tm[nd.type]||'';
+    tc.style.color=COL[nd.type]||'#888';
+    tip.querySelector('.td').textContent=nd.desc||'';
+  } else { tip.style.display='none'; }
+});
+canvas.addEventListener('mouseup', e => {
+  const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5) { const nd=nodeAt(x,y); if(nd) selectNode(nd); }
+  else if(pan&&Math.hypot(x-pan.sx,y-pan.sy)<5) {
+    if(selected||activeFilter) {
+      if(activeFilter) toggleFilter(activeFilter);
+      selected=null;
+      document.getElementById('no-sel').classList.remove('hidden');
+      document.getElementById('det').classList.add('hidden');
+      fitView();
+    }
+  }
+  drag=null; pan=null;
+});
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+  const d=e.deltaY>0?.88:1.14;
+  camera.x=mx-(mx-camera.x)*d; camera.y=my-(my-camera.y)*d;
+  camera.s=Math.max(.12,Math.min(5,camera.s*d));
+}, {passive:false});
+
+// ── Touch Events ──
+let initialPinchDistance=null, initialCameraS=null;
+function getTouchPos(e,i=0){const r=canvas.getBoundingClientRect();return{x:e.touches[i].clientX-r.left,y:e.touches[i].clientY-r.top};}
+canvas.addEventListener('touchstart', e=>{
+  if(e.touches.length===1){const p=getTouchPos(e);const nd=nodeAt(p.x,p.y);if(nd)drag={node:nd,ox:p.x,oy:p.y,nx:nd.x,ny:nd.y};else pan={sx:p.x,sy:p.y,cx:camera.x,cy:camera.y};}
+  else if(e.touches.length===2){drag=null;pan=null;const p1=getTouchPos(e,0),p2=getTouchPos(e,1);initialPinchDistance=Math.hypot(p1.x-p2.x,p1.y-p2.y);initialCameraS=camera.s;}
+},{passive:false});
+canvas.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  if(e.touches.length===1){const p=getTouchPos(e);if(drag){drag.node.x=drag.nx+(p.x-drag.ox)/camera.s;drag.node.y=drag.ny+(p.y-drag.oy)/camera.s;}else if(pan){camera.x=pan.cx+(p.x-pan.sx);camera.y=pan.cy+(p.y-pan.sy);}}
+  else if(e.touches.length===2&&initialPinchDistance){const p1=getTouchPos(e,0),p2=getTouchPos(e,1);const dist=Math.hypot(p1.x-p2.x,p1.y-p2.y);const d=dist/initialPinchDistance;const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;let newS=Math.max(.12,Math.min(5,initialCameraS*d));const sr=newS/camera.s;camera.x=mx-(mx-camera.x)*sr;camera.y=my-(my-camera.y)*sr;camera.s=newS;}
+},{passive:false});
+canvas.addEventListener('touchend', e=>{
+  if(e.touches.length===0){
+    if(drag||pan){const p=e.changedTouches[0];const r=canvas.getBoundingClientRect();const tx=p.clientX-r.left,ty=p.clientY-r.top;
+      if(drag&&Math.hypot(tx-drag.ox,ty-drag.oy)<5){const nd=nodeAt(tx,ty);if(nd)selectNode(nd);}
+      else if(pan&&Math.hypot(tx-pan.sx,ty-pan.sy)<5){if(selected||activeFilter){if(activeFilter)toggleFilter(activeFilter);selected=null;fitView();document.getElementById('no-sel').classList.remove('hidden');document.getElementById('det').classList.add('hidden');}}
+    }
+    drag=null;pan=null;initialPinchDistance=null;
+  }
+});
+
+document.addEventListener('click', e=>{ if(!ctxMenu.contains(e.target)&&e.target!==canvas) hideCtxMenu(); });
+document.getElementById('search-input').addEventListener('input', e=>handleSearch(e.target.value));
+
+// ── Search ──
+function handleSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  const listEl = document.getElementById('search-results-list');
+  if(!searchQuery) {
+    searchMatches=[];
+    listEl.innerHTML='<div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>';
+    return;
+  }
+  switchTab('search');
+  searchMatches = G.nodes.filter(n=>n.label.toLowerCase().includes(searchQuery)||n.desc?.toLowerCase().includes(searchQuery)).map(n=>n.id);
+  if(!searchMatches.length) {
+    listEl.innerHTML='<div class="text-center text-[#f87171] opacity-70 text-xs py-10">검색 결과가 없습니다.</div>';
+    return;
+  }
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  listEl.innerHTML = searchMatches.map(id => {
+    const n=G.nodes.find(x=>x.id===id);
+    const hl=n.label.replace(new RegExp(searchQuery,'gi'),m=>`<span class="text-[#fb923c] font-bold">${m}</span>`);
+    const tCol=COL[n.type]||'#888';
+    return `<div class="p-3 rounded-lg bg-[#0f1a34]/80 border border-[#fb923c]/15 mb-2 cursor-pointer hover:bg-[#162040] hover:border-[#fb923c]/40 transition-all" onclick="focusNode('${n.id}')">
+      <div class="text-sm font-semibold mb-1 text-[#c8d8ff]">${hl}</div>
+      <div class="text-[10px] opacity-70 flex items-center gap-1" style="color:${tCol}">
+        <span class="w-1.5 h-1.5 rounded-full" style="background:${tCol}"></span> ${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Focus / Select ──
+function focusNode(id) {
+  const nd=G.nodes.find(n=>n.id===id); if(!nd) return; selectNode(nd);
+  camera.s=Math.max(camera.s,1.2);
+  camera.x=canvas.width/2-nd.x*camera.s; camera.y=canvas.height/2-nd.y*camera.s;
+  if(window.innerWidth<1024) document.querySelector('aside')?.scrollIntoView({behavior:'smooth'});
+}
+function selectNode(nd) {
+  selected=nd; switchTab('detail');
+  document.getElementById('no-sel').classList.add('hidden');
+  const det=document.getElementById('det');
+  det.classList.remove('hidden'); det.classList.add('flex');
+
+  const col=COL[nd.type]||'#888';
+  const tTitle=nd.type==='event'?'핵심 사건':nd.type==='cause'?'발생 원인':'파급 효과';
+  const linksIn=G.edges.filter(e=>e.to===nd.id).map(e=>G.nodes.find(n=>n.id===e.from)).filter(Boolean);
+  const linksOut=G.edges.filter(e=>e.from===nd.id).map(e=>G.nodes.find(n=>n.id===e.to)).filter(Boolean);
+
+  let tagsHTML='';
+  if(nd.depth) tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border" style="border-color:${col}44;color:${col}">${nd.depth}</span>`;
+
+  det.innerHTML=`
+    <div class="ON-DEVICE-y-1">
+      <span class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2" style="color:${col}">
+        <span class="w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_${col}]" style="background:${col}"></span> ${tTitle}
+      </span>
+      <h2 class="font-bold text-[16px] text-[#c8d8ff] leading-tight mt-1 mb-2 font-['Manrope']">${nd.label}</h2>
+      <div class="flex gap-1.5 mb-3 flex-wrap">${tagsHTML}</div>
+    </div>
+    <div class="det-card">
+      <p class="text-[#8aaad8] text-xs leading-relaxed">${nd.desc||'설명이 없습니다.'}</p>
+    </div>
+    <div class="ON-DEVICE-y-3 mt-1 flex-grow">
+      ${linksIn.length?`
+      <div>
+        <span class="text-[10px] uppercase font-bold text-[#f59e0b] tracking-widest block mb-2 opacity-80">이전 연결 (수신)</span>
+        <div class="flex flex-wrap gap-1.5">
+          ${linksIn.map(l=>`<span class="px-2 py-1 rounded-md bg-[#f59e0b]/10 border border-[#f59e0b]/20 text-[10px] text-[#f59e0b] cursor-pointer hover:bg-[#f59e0b]/20 transition-colors" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
+        </div>
+      </div>`:''}
+      ${linksOut.length?`
+      <div>
+        <span class="text-[10px] uppercase font-bold text-[#34d399] tracking-widest block mb-2 opacity-80">이후 연결 (발신)</span>
+        <div class="flex flex-wrap gap-1.5">
+          ${linksOut.map(l=>`<span class="px-2 py-1 rounded-md bg-[#34d399]/10 border border-[#34d399]/20 text-[10px] text-[#34d399] cursor-pointer hover:bg-[#34d399]/20 transition-colors" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}
+        </div>
+      </div>`:''}
+    </div>
+    <button onclick="confirmDelete()" class="mt-auto w-full py-2 rounded-lg border border-[#f87171]/30 text-[#f87171] font-bold tracking-tight text-xs hover:bg-[#f87171]/10 active:scale-95 duration-200 mt-4 flex justify-center items-center gap-1">
+      <span class="material-symbols-outlined text-[15px]">delete</span> 노드 삭제
+    </button>
+  `;
+}
+function selectNodeById(id){const nd=G.nodes.find(n=>n.id===id);if(nd)selectNode(nd);}
+
+// ── Tabs ──
+function switchTab(t) {
+  ['detail','search','list'].forEach(tab=>{
+    document.getElementById('tab-'+tab).classList.toggle('hidden', tab!==t);
+    document.getElementById('tab-'+tab).classList.toggle('flex', tab===t);
+  });
+  const btns={detail:'tab-btn-detail',list:'tab-btn-list',search:'tab-btn-search'};
+  Object.values(btns).forEach(id=>{
+    const b=document.getElementById(id);
+    b.className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#8aaad8] hover:bg-[#1e2d50]';
+  });
+  const ab=document.getElementById(btns[t]);
+  ab.className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#fb923c]/15 text-[#fb923c]';
+}
+
+// ── Filter ──
+function toggleFilter(t) {
+  activeFilter = activeFilter===t ? null : t;
+  if(activeFilter) {
+    selected=null;
+    document.getElementById('no-sel').classList.remove('hidden');
+    document.getElementById('det').classList.add('hidden');
+  }
+  const btns={
+    cause:{ids:['flt-cause','flt-cause-m'], c:'#f59e0b'},
+    event:{ids:['flt-event','flt-event-m'], c:'#fb923c'},
+    effect:{ids:['flt-effect','flt-effect-m'], c:'#34d399'}
+  };
+  Object.keys(btns).forEach(k=>{
+    btns[k].ids.forEach(id=>{
+      const b=document.getElementById(id); if(!b) return;
+      if(k===activeFilter){b.style.backgroundColor=btns[k].c+'33';b.style.color=btns[k].c;}
+      else{b.style.backgroundColor='transparent';b.style.color='';}
+    });
+  });
+}
+
+// ── Context Menu ──
+function showCtxMenu(x,y){ctxMenu.style.display='block';ctxMenu.style.left=Math.min(x,window.innerWidth-155)+'px';ctxMenu.style.top=Math.min(y,window.innerHeight-100)+'px';}
+function hideCtxMenu(){ctxMenu.style.display='none';}
+function focusSelected(){hideCtxMenu();if(selected)selectNode(selected);}
+
+// ── Delete ──
+function confirmDelete(){
+  hideCtxMenu(); if(!selected) return; pendingDelete=selected;
+  const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;
+  document.getElementById('modal-msg').textContent=`"${selected.label}" 관련 엣지 ${connCount}개가 함께 삭제됩니다.`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');pendingDelete=null;}
+function executeDelete(){
+  if(!pendingDelete) return; const id=pendingDelete.id;
+  G.nodes=G.nodes.filter(n=>n.id!==id);
+  G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);
+  if(selected&&selected.id===id){selected=null;document.getElementById('no-sel').classList.remove('hidden');document.getElementById('det').classList.add('hidden');}
+  pendingDelete=null; closeModal(); updateStats(); updateListTab(); handleSearch(searchQuery); hasChanges=true;
+  document.getElementById('save-btn').style.display='block'; startSim(.4);
+}
+
+// ── Stats ──
+function updateStats(){
+  document.getElementById('hstats-nodes').textContent=`Nodes: ${G.nodes.length}`;
+  document.getElementById('hstats-edges').textContent=`Edges: ${G.edges.length}`;
+}
+
+// ── List Tab ──
+function updateListTab(){
+  const listEl=document.getElementById('tab-list');
+  const causes=G.nodes.filter(n=>n.type==='cause');
+  const events=G.nodes.filter(n=>n.type==='event');
+  const effects=G.nodes.filter(n=>n.type==='effect');
+  const renderCat=(title,items,color)=>{
+    if(!items.length) return '';
+    return `<div>
+      <div class="text-[11px] uppercase font-bold tracking-widest mb-3 flex items-center gap-2" style="color:${color}">
+        <span class="w-1.5 h-1.5 rounded-full" style="background:${color};box-shadow:0 0 6px ${color}88"></span> ${title} <span class="opacity-50 text-[10px]">(${items.length})</span>
+      </div>
+      <div class="flex flex-col gap-2 pl-3 border-l pb-4" style="border-color:${color}33">
+        ${items.map(n=>`<div class="text-[13px] text-[#8aaad8] hover:text-[#c8d8ff] cursor-pointer transition-colors leading-snug break-keep" onclick="focusNode('${n.id}')" title="${n.label}">${n.label}</div>`).join('')}
+      </div>
+    </div>`;
+  };
+  listEl.innerHTML=`
+    ${renderCat('발생 원인 (Cause)',causes,COL['cause'])}
+    ${renderCat('핵심 사건 (Event)',events,COL['event'])}
+    ${renderCat('파급 효과 (Effect)',effects,COL['effect'])}
+  `;
+}
+
+// ── Camera ──
+function fitView(){
+  if(!G.nodes.length) return;
+  const xs=G.nodes.map(n=>n.x), ys=G.nodes.map(n=>n.y);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys), pad=90;
+  const cw=canvas.width, ch=canvas.height;
+  camera.s=Math.min((cw-pad*2)/Math.max(maxX-minX,1),(ch-pad*2)/Math.max(maxY-minY,1),1.6);
+  camera.x=pad-minX*camera.s+((cw-pad*2)-(maxX-minX)*camera.s)/2;
+  camera.y=pad-minY*camera.s+((ch-pad*2)-(maxY-minY)*camera.s)/2;
+}
+function zoom(f){const cx=canvas.width/2,cy=canvas.height/2;camera.x=cx-(cx-camera.x)*f;camera.y=cy-(cy-camera.y)*f;camera.s=Math.max(.12,Math.min(5,camera.s*f));}
+function toggleLabels(){showL=!showL;}
+
+// ── Save / Export ──
+function saveChanges(){
+  const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),created:new Date().toISOString().slice(0,10)}};
+  const jsContent="window.DATA = "+JSON.stringify(out,null,2)+";";
+  const blob=new Blob([jsContent],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  const scriptName=document.getElementById('data-script').getAttribute('src');
+  const a=document.createElement('a'); a.href=url; a.download=scriptName; a.click();
+  URL.revokeObjectURL(url); hasChanges=false; document.getElementById('save-btn').style.display='none';
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='ON-DEVICE_graph.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Boot ──
+window.addEventListener('load', loadData);
+</script>
+</body>
+</html>
+
+
