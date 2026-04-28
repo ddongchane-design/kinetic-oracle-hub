@@ -174,13 +174,20 @@
     function renderEtfChips(graphUrl) {
       const themes = window.ETF_DB && window.ETF_DB[graphUrl];
       if (!themes || themes.length === 0) return '';
+      const palette = [
+        'bg-sky-500/20 border-sky-500/40 text-sky-300',
+        'bg-amber-500/20 border-amber-500/40 text-amber-300',
+        'bg-violet-500/20 border-violet-500/40 text-violet-300',
+        'bg-emerald-500/20 border-emerald-500/40 text-emerald-300',
+        'bg-rose-500/20 border-rose-500/40 text-rose-300',
+      ];
       return `
         <div class="mt-3 pt-3 border-t border-slate-700/30">
-          <p class="text-[9px] text-slate-600 mb-1.5 font-mono uppercase tracking-widest flex items-center gap-1">
-            <span class="material-symbols-outlined text-[11px]">candlestick_chart</span> ETF 투자 테마
+          <p class="text-xs text-slate-300 mb-2 font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">candlestick_chart</span> ETF 투자 테마
           </p>
-          <div class="flex flex-wrap gap-1.5">
-            ${themes.map(t => `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:border-slate-500 transition-colors cursor-default">${t}</span>`).join('')}
+          <div class="flex flex-wrap gap-2">
+            ${themes.map((t, i) => `<span class="px-2.5 py-1 rounded-md text-xs font-semibold border ${palette[i % palette.length]} cursor-default">${t}</span>`).join('')}
           </div>
         </div>
       `;
