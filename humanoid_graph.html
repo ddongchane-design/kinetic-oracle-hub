@@ -458,6 +458,7 @@ tailwind.config = {
 // ═══════════════════════════════════════════════
 const COL = { event: '#22d3ee', cause: '#f59e0b', effect: '#34d399' };
 const RAD = { event: 26, cause: 17, effect: 15 };
+const PICK_NODES = ['ev_hm_1', 'ev_hm_2', 'ev_hm_4'];
 
 let G = {nodes:[], edges:[]};
 let camera = {x:0, y:0, s:1};
@@ -642,6 +643,34 @@ function draw() {
     const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
 
     const col = COL[n.type]||'#888';
+    const isPick = PICK_NODES.includes(n.id);
+
+    // PICK ring (animated golden)
+    if(isPick && !fadeOutNode) {
+      const pulse = 0.6 + 0.4 * Math.sin(now * 0.0022);
+      const pr = r + 16;
+      // Outer halo
+      ctx.beginPath(); ctx.arc(n.x, n.y, pr+10, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(251,191,36,${0.07*pulse})`; ctx.fill();
+      // Golden ring
+      ctx.beginPath(); ctx.arc(n.x, n.y, pr, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(251,191,36,${0.85*pulse})`;
+      ctx.lineWidth = 2.2/camera.s;
+      ctx.shadowColor='#fbbf24'; ctx.shadowBlur=16*pulse;
+      ctx.stroke(); ctx.shadowBlur=0;
+      // PICK badge
+      const bText = '★ PICK';
+      ctx.font = `bold ${10/camera.s}px "Inter",sans-serif`;
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(bText).width;
+      const bw=tw+12, bh=16/camera.s, bx=n.x-bw/2, by=n.y-pr-bh-4;
+      ctx.fillStyle=`rgba(251,191,36,${0.95*pulse})`;
+      ctx.beginPath();
+      if(ctx.roundRect) { ctx.roundRect(bx,by,bw,bh,4/camera.s); } else { ctx.rect(bx,by,bw,bh); }
+      ctx.fill();
+      ctx.fillStyle='#0a0a0a';
+      ctx.fillText(bText, n.x, by+bh*0.72);
+    }
 
     // Search ring
     if(isMatch) {
