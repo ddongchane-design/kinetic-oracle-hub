@@ -1,7 +1,7 @@
 window.INSIGHTS_DB = [
   {
     "id": "ins_eth_001",
-    "date": "2026-05-06",
+    "date": "2026-05-08",
     "targetGraph": "eth_graph.html",
     "targetNodes": ["ev_eth_1", "ef_eth_4", "ef_eth_7", "ca_eth_3", "ef_eth_5"],
     "title": "🔷 [길목 지키기] 이더리움 성장 가능성: DeFi·RWA·스테이블코인 3축 수렴의 인과관계",
