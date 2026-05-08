@@ -279,12 +279,19 @@ tailwind.config = {
     <canvas id="gc" class="touch-none"></canvas>
 
     <!-- Scenario Toggle Bar -->
-    <div id="scenario-bar" class="absolute top-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 bg-[#05091a]/90 px-2 py-1.5 rounded-full border border-[#a78bfa]/15 backdrop-blur-sm shadow-lg" style="font-family:'Noto Sans KR'">
-      <span class="text-[10px] text-[#8aaad8]/60 pl-1.5 pr-1 font-semibold tracking-wider uppercase">시나리오</span>
-      <div class="w-px h-3 bg-[#a78bfa]/20"></div>
-      <button id="sc-ab" class="sc-btn sc-active-ab px-3 py-1 rounded-full text-[11px] font-bold" onclick="setScenario('both')">A+B 동시</button>
-      <button id="sc-a" class="sc-btn px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8]" onclick="setScenario('A')">✅ CLARITY 통과</button>
-      <button id="sc-b" class="sc-btn px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8]" onclick="setScenario('B')">❌ CLARITY 무산</button>
+    <div id="scenario-bar" class="absolute top-0 left-0 right-0 z-40 flex items-center gap-1 bg-[#05091a]/90 px-3 py-2 border-b border-[#a78bfa]/15 backdrop-blur-sm shadow-lg
+      lg:top-3 lg:left-1/2 lg:right-auto lg:-translate-x-1/2 lg:rounded-full lg:border lg:px-2 lg:py-1.5" style="font-family:'Noto Sans KR'">
+      <span class="hidden lg:block text-[10px] text-[#8aaad8]/60 pl-1.5 pr-1 font-semibold tracking-wider uppercase">시나리오</span>
+      <div class="hidden lg:block w-px h-3 bg-[#a78bfa]/20"></div>
+      <button id="sc-ab" class="sc-btn sc-active-ab flex-1 lg:flex-none px-2 lg:px-3 py-1 rounded-full text-[11px] font-bold text-center" onclick="setScenario('both')">
+        A+B<span class="hidden lg:inline"> 동시</span>
+      </button>
+      <button id="sc-a" class="sc-btn flex-1 lg:flex-none px-2 lg:px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8] text-center" onclick="setScenario('A')">
+        ✅ <span class="hidden lg:inline">CLARITY </span>통과
+      </button>
+      <button id="sc-b" class="sc-btn flex-1 lg:flex-none px-2 lg:px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8] text-center" onclick="setScenario('B')">
+        ❌ <span class="hidden lg:inline">CLARITY </span>무산
+      </button>
     </div>
 
     <!-- Zoom Controls -->
