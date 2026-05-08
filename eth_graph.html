@@ -186,6 +186,14 @@ tailwind.config = {
     background: linear-gradient(90deg, transparent, rgba(167,139,250,0.4), transparent);
     margin: 8px 0;
   }
+
+  /* ── Scenario Toggle ── */
+  #scenario-bar { transition: opacity .2s; }
+  .sc-btn { transition: all .15s; border: 1px solid transparent; }
+  .sc-btn:hover { background: rgba(255,255,255,0.05); }
+  .sc-btn.sc-active-ab { background: rgba(167,139,250,0.18); color: #a78bfa; border-color: rgba(167,139,250,0.3); }
+  .sc-btn.sc-active-a  { background: rgba(52,211,153,0.18);  color: #34d399; border-color: rgba(52,211,153,0.3); }
+  .sc-btn.sc-active-b  { background: rgba(248,113,113,0.18); color: #f87171; border-color: rgba(248,113,113,0.3); }
 </style>
 </head>
 <body>
@@ -269,6 +277,15 @@ tailwind.config = {
   <!-- ── Graph Canvas ── -->
   <div class="w-full lg:w-auto lg:flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
     <canvas id="gc" class="touch-none"></canvas>
+
+    <!-- Scenario Toggle Bar -->
+    <div id="scenario-bar" class="absolute top-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1 bg-[#05091a]/90 px-2 py-1.5 rounded-full border border-[#a78bfa]/15 backdrop-blur-sm shadow-lg" style="font-family:'Noto Sans KR'">
+      <span class="text-[10px] text-[#8aaad8]/60 pl-1.5 pr-1 font-semibold tracking-wider uppercase">시나리오</span>
+      <div class="w-px h-3 bg-[#a78bfa]/20"></div>
+      <button id="sc-ab" class="sc-btn sc-active-ab px-3 py-1 rounded-full text-[11px] font-bold" onclick="setScenario('both')">A+B 동시</button>
+      <button id="sc-a" class="sc-btn px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8]" onclick="setScenario('A')">✅ CLARITY 통과</button>
+      <button id="sc-b" class="sc-btn px-3 py-1 rounded-full text-[11px] font-bold text-[#8aaad8]" onclick="setScenario('B')">❌ CLARITY 무산</button>
+    </div>
 
     <!-- Zoom Controls -->
     <div class="absolute bottom-6 left-6 z-40 flex items-center gap-1 p-1.5 zoom-ctrl shadow-2xl">
@@ -469,6 +486,19 @@ let searchMatches=[];
 let pendingDelete=null;
 let hasChanges=false;
 let activeFilter=null;
+let activeScenario = 'both'; // 'A' | 'B' | 'both'
+
+function setScenario(s) {
+  activeScenario = s;
+  ['sc-ab','sc-a','sc-b'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove('sc-active-ab','sc-active-a','sc-active-b');
+  });
+  const map = { both:'sc-ab', A:'sc-a', B:'sc-b' };
+  const cls = { both:'sc-active-ab', A:'sc-active-a', B:'sc-active-b' };
+  const btn = document.getElementById(map[s]);
+  if (btn) btn.classList.add(cls[s]);
+}
 
 const canvas = document.getElementById('gc');
 const ctx = canvas.getContext('2d');
@@ -582,11 +612,14 @@ function draw() {
     const isConnFlt = activeFilter && (a.type===activeFilter || b.type===activeFilter);
     const isConn    = selected ? isConnSel : (activeFilter ? isConnFlt : false);
     const fadeOut   = selected ? !isConnSel : (activeFilter ? !isConnFlt : false);
+    const eScenario = e.scenario;
+    const scenFadeEdge = eScenario && activeScenario !== 'both' && activeScenario !== eScenario;
+    const effFadeEdge = fadeOut || scenFadeEdge;
 
     ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
     let grad = ctx.createLinearGradient(a.x,a.y,b.x,b.y);
     let ca = COL[a.type]||'#fff', cb = COL[b.type]||'#fff';
-    let alphaHex = fadeOut ? '0d' : (e.shared ? 'bb' : '44');
+    let alphaHex = effFadeEdge ? '07' : (e.shared ? 'bb' : '44');
     if(isConn) alphaHex = 'ff';
     grad.addColorStop(0, ca+alphaHex);
     grad.addColorStop(1, cb+alphaHex);
@@ -617,17 +650,29 @@ function draw() {
       ctx.moveTo(tx,ty);
       ctx.lineTo(tx-11*Math.cos(ang-.4),ty-11*Math.sin(ang-.4));
       ctx.lineTo(tx-11*Math.cos(ang+.4),ty-11*Math.sin(ang+.4));
-      ctx.fillStyle=cb+(fadeOut?'0d':(isConn?'ff':'77'));
+      ctx.fillStyle=cb+(effFadeEdge?'07':(isConn?'ff':'77'));
       ctx.fill();
     }
 
     // Shared edge label
-    if(e.shared && e.label && showL && !fadeOut) {
+    if(e.shared && e.label && showL && !effFadeEdge) {
       const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
       ctx.font='9.5px "Inter","Noto Sans KR",sans-serif';
       ctx.fillStyle='rgba(200,216,255,0.7)';
       ctx.textAlign='center';
       ctx.fillText(e.label, mx, my-7);
+    }
+
+    // Scenario edge glow overlay
+    if(eScenario && !effFadeEdge && (activeScenario === 'both' || activeScenario === eScenario)) {
+      const sCol = eScenario === 'A' ? '#34d399' : '#f87171';
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle = sCol;
+      ctx.globalAlpha = activeScenario === 'both' ? 0.5 : 0.75;
+      ctx.lineWidth = 1.8/camera.s;
+      ctx.shadowColor = sCol; ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
     }
   });
 
@@ -641,6 +686,9 @@ function draw() {
     const isConnNodeFlt = activeFilter && (n.type===activeFilter || G.edges.some(e=>(e.from===n.id&&G.nodes.find(o=>o.id===e.to)?.type===activeFilter)||(e.to===n.id&&G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
     const isConnNode = selected ? isConnNodeSel : (activeFilter ? isConnNodeFlt : false);
     const fadeOutNode = selected ? !isConnNodeSel : (activeFilter ? !isConnNodeFlt : false);
+    const nScenario = n.scenario;
+    const scenFadeNode = nScenario && nScenario !== 'AB' && activeScenario !== 'both' && activeScenario !== nScenario;
+    const effFade = fadeOutNode || scenFadeNode;
 
     const col = COL[n.type]||'#888';
 
@@ -669,19 +717,19 @@ function draw() {
     let grd = ctx.createRadialGradient(n.x,n.y,r*0.4,n.x,n.y,r*2.2);
     grd.addColorStop(0, col); grd.addColorStop(1, col+'00');
     ctx.beginPath(); ctx.arc(n.x,n.y,r*2.2,0,Math.PI*2);
-    ctx.fillStyle=grd; ctx.globalAlpha=fadeOutNode?0.03:0.18; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=grd; ctx.globalAlpha=effFade?0.03:0.18; ctx.fill(); ctx.globalAlpha=1;
 
     // Main circle
     ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
-    ctx.fillStyle=col; ctx.globalAlpha=fadeOutNode?0.12:(isH||isS?1:0.82); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=col; ctx.globalAlpha=effFade?0.12:(isH||isS?1:0.82); ctx.fill(); ctx.globalAlpha=1;
     ctx.shadowBlur=0;
 
     // Inner dot
     ctx.beginPath(); ctx.arc(n.x,n.y,r*0.28,0,Math.PI*2);
-    ctx.fillStyle='#05091a'; ctx.globalAlpha=fadeOutNode?0.15:0.65; ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle='#05091a'; ctx.globalAlpha=effFade?0.15:0.65; ctx.fill(); ctx.globalAlpha=1;
 
     // Label
-    if(showL && !fadeOutNode) {
+    if(showL && !effFade) {
       let lbl = n.label.length>13 ? n.label.slice(0,12)+'…' : n.label;
       ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
       ctx.fillStyle = (isH||isS) ? '#fff' : 'rgba(200,216,255,0.82)';
@@ -689,9 +737,27 @@ function draw() {
       ctx.fillText(lbl, n.x, n.y+r+15);
     }
 
+    // Scenario ring
+    if(nScenario && !effFade) {
+      const showScenRing = activeScenario === 'both'
+        || activeScenario === nScenario
+        || nScenario === 'AB';
+      if(showScenRing) {
+        const sCol = nScenario === 'A' ? '#34d399' : nScenario === 'B' ? '#f87171' : '#a78bfa';
+        const pulse = 0.65 + 0.35 * Math.sin(now * 0.0018);
+        ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, 0, Math.PI*2);
+        ctx.strokeStyle = sCol;
+        ctx.lineWidth = 2/camera.s;
+        ctx.globalAlpha = (activeScenario === 'both' ? 0.65 : 0.9) * pulse;
+        ctx.shadowColor = sCol; ctx.shadowBlur = 12*pulse;
+        ctx.stroke();
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      }
+    }
+
     // PICK badge
     const isPick = PICK_NODES.includes(n.id);
-    if(isPick && !fadeOutNode) {
+    if(isPick && !effFade) {
       const pulse = 0.6 + 0.4 * Math.sin(now * 0.0022);
       const pr = r + 16;
       ctx.beginPath(); ctx.arc(n.x, n.y, pr+10, 0, Math.PI*2);
