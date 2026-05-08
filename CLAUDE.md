@@ -125,7 +125,51 @@ knowledge-graph/
 - **인사이트 패널 너비**: `lg:w-80`
 - **body overflow**: `overflow: hidden` 사용 금지 (모바일 스크롤 차단됨)
 - **컬러 테마**: 그래프별 독립 유지 (통일 불필요)
-- **템플릿 기준**: 새 그래프는 반드시 `space_graph.html`을 복사해서 시작
+- **템플릿 기준**: 새 그래프는 반드시 `space_graph.html`을 복사해서 시작 (또는 최근 그래프 파일)
+
+### PICK 마크 기능
+
+특정 노드에 황금 애니메이션 링 + ★ PICK 배지를 표시해 "곧 현실화될 핵심 투자 포인트"를 강조하는 기능.
+
+**추가 방법:**
+
+1. 그래프 JS 최상단 `COL`, `RAD` 상수 선언 바로 아래에 추가:
+```javascript
+const PICK_NODES = ['ev_xxx_1', 'ef_xxx_2'];  // PICK 표시할 노드 ID 배열
+```
+
+2. `draw()` 함수 내 노드 루프의 Label 렌더링 블록 **직후** (루프 종료 `});` 직전)에 추가:
+```javascript
+// PICK badge
+const isPick = PICK_NODES.includes(n.id);
+if(isPick && !fadeOutNode) {
+  const pulse = 0.6 + 0.4 * Math.sin(now * 0.0022);
+  const pr = r + 16;
+  ctx.beginPath(); ctx.arc(n.x, n.y, pr+10, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(251,191,36,${0.07*pulse})`; ctx.fill();
+  ctx.beginPath(); ctx.arc(n.x, n.y, pr, 0, Math.PI*2);
+  ctx.strokeStyle = `rgba(251,191,36,${0.85*pulse})`;
+  ctx.lineWidth = 2.2/camera.s;
+  ctx.shadowColor='#fbbf24'; ctx.shadowBlur=16*pulse;
+  ctx.stroke(); ctx.shadowBlur=0;
+  const bText = '★ PICK';
+  ctx.font = `bold ${10/camera.s}px "Inter",sans-serif`;
+  ctx.textAlign = 'center';
+  const tw = ctx.measureText(bText).width;
+  const bw=tw+12, bh=16/camera.s, bx=n.x-bw/2, by=n.y-pr-bh-4;
+  ctx.fillStyle=`rgba(251,191,36,${0.95*pulse})`;
+  ctx.beginPath();
+  if(ctx.roundRect) { ctx.roundRect(bx,by,bw,bh,4/camera.s); } else { ctx.rect(bx,by,bw,bh); }
+  ctx.fill();
+  ctx.fillStyle='#0a0a0a';
+  ctx.fillText(bText, n.x, by+bh*0.72);
+}
+```
+
+**언제 사용하나:**
+- "이미 가시화됐거나 임박한" 핵심 투자 길목 노드에 표시
+- 보통 핵심 사건(event) 1~2개 + 중장기 파급효과(effect) 1~2개 선택
+- 과하면 의미 희석 → 그래프 당 3~4개 이하로 제한
 
 ### 노드 배치 간격 (신규 그래프 필수 적용)
 
@@ -166,11 +210,15 @@ Vercel이 GitHub main 브랜치를 감지해 자동 배포. 완료까지 1~2분 
 
 ## 현재 운영 중인 그래프 목록
 
-| 파일 | 주제 | 데이터 파일 |
-|------|------|------------|
-| `bmnr_graph.html` | BMNR(Bitmine) ETH 트레저리 전략 | `bmnr_data.js` |
-| `iran_graph.html` | 이란전쟁 매크로 분석 | `iran_data.js` |
-| `space_graph.html` | 우주산업 분석 | `space_data.js` |
-| `tempus_graph.html` | Tempus AI 헬스케어 AI 플랫폼 | `tempus_data.js` |
-| `hyundai_graph.html` | 현대바이오랜드 기업 분석 | `hyundai_data.js` |
-| `generic_graph.html` | 범용/테스트 | `data.js` |
+| 파일 | 주제 | 데이터 파일 | PICK 노드 |
+|------|------|------------|-----------|
+| `bmnr_graph.html` | BMNR(Bitmine) ETH 트레저리 전략 | `bmnr_data.js` | - |
+| `iran_graph.html` | 이란전쟁 매크로 분석 | `iran_data.js` | - |
+| `space_graph.html` | 우주산업 분석 | `space_data.js` | - |
+| `tempus_graph.html` | Tempus AI 헬스케어 AI 플랫폼 | `tempus_data.js` | - |
+| `hyundai_graph.html` | 현대바이오랜드 기업 분석 | `hyundai_data.js` | - |
+| `ai_graph.html` | AI 패권 및 인프라 경쟁 | `ai_data.js` | - |
+| `ondevice_graph.html` | 온디바이스 & 피지컬 AI | `ondevice_data.js` | - |
+| `humanoid_graph.html` | 휴머노이드 대량생산 & 상업화 | `humanoid_data.js` | `ev_hm_1`, `ev_hm_2`, `ev_hm_4` |
+| `eth_graph.html` | 이더리움 & DeFi·RWA 분석 | `eth_data.js` | `ev_eth_1`, `ef_eth_4`, `ef_eth_7` |
+| `generic_graph.html` | 범용/테스트 | `data.js` | - |
