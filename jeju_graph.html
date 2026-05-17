@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>제주반도체 분석 | Kinetic Oracle</title>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6CXHMKPHPV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6CXHMKPHPV');
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "background":               "#050d0a",
+        "surface":                  "#050d0a",
+        "surface-container-lowest": "#030a07",
+        "surface-container-low":    "#091811",
+        "surface-container":        "#0e221a",
+        "surface-container-high":   "#142b21",
+        "surface-bright":           "#1c3a2c",
+        "surface-variant":          "#17302a",
+        "outline":                  "#2dd4bf",
+        "on-background":            "#c0ddd6",
+        "on-surface":               "#c0ddd6",
+        "on-surface-variant":       "#6ab5a8",
+        "inverse-surface":          "#c0ddd6",
+        "primary":                  "#2dd4bf",
+        "on-primary":               "#003830",
+        "primary-fixed":            "#cdfaf3",
+        "secondary":                "#a3e635",
+        "secondary-fixed":          "#ecfccb",
+        "tertiary":                 "#fb923c",
+        "error":                    "#f87171"
+      },
+      "fontFamily": { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] }
+    }
+  }
+};
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    background-color: #050d0a;
+    color: #c0ddd6;
+  }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* ── Starfield ── */
+  #starfield {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 60% 25%, rgba(45,212,191,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 20% 80%, rgba(163,230,53,0.04) 0%, transparent 50%);
+  }
+  #starfield canvas { width: 100%; height: 100%; }
+
+  #gc { width:100%; height:100%; display:block; cursor:grab; outline:none; }
+  #gc:active { cursor:grabbing; }
+
+  #tip {
+    position: absolute;
+    background: rgba(9,24,17,0.97);
+    border: 1px solid rgba(45,212,191,0.25);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-size: 12px;
+    max-width: 230px;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 0 30px rgba(45,212,191,0.12), 0 8px 24px rgba(0,0,0,.7);
+    backdrop-filter: blur(12px);
+  }
+  #tip .tt { font-weight: 700; color: #c0ddd6; margin-bottom: 3px; font-size: 13px; font-family:'Noto Sans KR'; }
+  #tip .tc { font-size: 10px; margin-bottom: 5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  #tip .td { color: #6ab5a8; line-height: 1.6; font-size: 11px; font-family:'Noto Sans KR'; }
+
+  #ctx-menu {
+    position: fixed;
+    background: #0e221a;
+    border: 1px solid rgba(45,212,191,0.2);
+    border-radius: 10px;
+    padding: 6px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    display: none;
+    min-width: 140px;
+    color: #c0ddd6;
+  }
+  .ctx-item { padding:7px 12px; border-radius:6px; font-size:12px; cursor:pointer; transition:background .1s; display:flex; align-items:center; gap:8px; }
+  .ctx-item:hover { background: #17302a; }
+  .ctx-item.danger { color: #f87171; }
+  .ctx-item.danger:hover { background: rgba(248,113,113,.1); }
+
+  #modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:none; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
+  #modal-overlay.show { display:flex; }
+  #modal { background:#0e221a; border:1px solid rgba(45,212,191,0.2); border-radius:14px; padding:24px; max-width:320px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,.8); color:#c0ddd6; }
+  #modal h3 { font-size:15px; margin-bottom:8px; font-family:'Noto Sans KR'; }
+  #modal p { font-size:12px; color:#6ab5a8; line-height:1.7; margin-bottom:20px; font-family:'Noto Sans KR'; }
+  .modal-btns { display:flex; gap:8px; }
+  .modal-btns button { flex:1; padding:8px; border-radius:7px; font-size:12px; cursor:pointer; font-family:'Noto Sans KR'; border:1px solid rgba(45,212,191,0.3); background:transparent; color:#6ab5a8; transition:all .15s; }
+  .modal-btns button:hover { background:#17302a; color:#c0ddd6; }
+  .modal-btns button.confirm { border-color:rgba(248,113,113,.4); color:#f87171; }
+  .modal-btns button.confirm:hover { background:rgba(248,113,113,.1); }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:rgba(45,212,191,0.2); border-radius:2px; }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(45,212,191,0.4); }
+    50% { box-shadow: 0 0 20px rgba(45,212,191,0.8); }
+  }
+  .glow-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+  header {
+    background: rgba(5,13,10,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(45,212,191,0.1);
+    box-shadow: 0 4px 32px rgba(45,212,191,0.05);
+  }
+  aside {
+    background: rgba(9,24,17,0.85);
+    backdrop-filter: blur(24px);
+    border-right: 1px solid rgba(45,212,191,0.08);
+  }
+  #insight-panel {
+    background: rgba(7,19,13,0.92);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(45,212,191,0.08);
+  }
+  .zoom-ctrl {
+    background: rgba(9,24,17,0.85);
+    border: 1px solid rgba(45,212,191,0.12);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+  }
+  .flt-btn { transition: all .2s; }
+  .neon-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(45,212,191,0.35), transparent);
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="starfield"><canvas id="star-canvas"></canvas></div>
+
+<!-- ── HEADER ── -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-16 font-['Manrope'] tracking-tight">
+  <div class="flex items-center gap-6">
+    <a href="index.html" class="flex items-center gap-1.5 text-[#6ab5a8] hover:text-[#2dd4bf] transition-colors cursor-pointer" title="홈으로 돌아가기">
+      <span class="material-symbols-outlined text-[22px]">home</span>
+      <span class="text-sm font-bold">Hub</span>
+    </a>
+    <span class="text-[#17302a] font-light">/</span>
+    <div class="flex items-center gap-2">
+      <span class="text-lg font-bold text-[#2dd4bf] cursor-pointer hover:text-[#5eead4] transition-colors" onclick="loadData()" title="그래프 새로고침">
+        💾 제주반도체
+      </span>
+      <span class="text-[10px] font-mono text-[#2dd4bf]/40 bg-[#2dd4bf]/5 border border-[#2dd4bf]/20 px-2 py-0.5 rounded-full tracking-widest">JEJU</span>
+    </div>
+  </div>
+
+  <!-- Center: Filter Bar -->
+  <div class="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center gap-1 bg-[#091811]/80 p-1 rounded-full border border-[#2dd4bf]/15 shadow-sm" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause" class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#6ab5a8] hover:bg-[#fb923c]/10 hover:text-[#fb923c] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event" class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#6ab5a8] hover:bg-[#2dd4bf]/10 hover:text-[#2dd4bf] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect" class="flt-btn px-5 py-1.5 rounded-full text-[13px] font-semibold text-[#6ab5a8] hover:bg-[#a3e635]/10 hover:text-[#a3e635] transition-all">파급 효과</button>
+  </div>
+
+  <!-- Right -->
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#091811]/80 border border-[#2dd4bf]/10 text-xs font-mono">
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#2dd4bf] animate-pulse shadow-[0_0_6px_rgba(45,212,191,0.8)]"></span>
+        <span id="hstats-nodes" class="text-[#6ab5a8]">Nodes: 0</span>
+      </div>
+      <div class="w-px h-3 bg-[#2dd4bf]/20"></div>
+      <span id="hstats-edges" class="text-[#6ab5a8]">Edges: 0</span>
+    </div>
+    <div class="relative hidden md:flex">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm opacity-40 text-[#2dd4bf]">search</span>
+      <input id="search-input"
+        class="bg-[#091811]/90 border border-[#2dd4bf]/15 rounded-full pl-9 pr-4 py-1.5 text-sm w-52 focus:ring-1 focus:ring-[#2dd4bf]/40 text-[#c0ddd6] placeholder-[#6ab5a8]/40 transition-all outline-none"
+        placeholder="노드 검색..." type="text"/>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="save-btn" onclick="saveChanges()"
+        class="hidden active:scale-95 duration-200 text-[#a3e635] font-bold text-sm px-3 py-1.5 bg-[#a3e635]/10 rounded-full border border-[#a3e635]/30 hover:bg-[#a3e635]/20 transition-all" style="font-family:'Noto Sans KR'">
+        💾 저장하기
+      </button>
+      <button onclick="exportJSON()" class="active:scale-95 duration-200 text-[#6ab5a8] hover:text-[#2dd4bf] transition-colors" title="JSON 내보내기">
+        <span class="material-symbols-outlined text-[20px]">download</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="relative w-full min-h-screen lg:h-screen bg-transparent pt-16 flex flex-col lg:flex-row overflow-x-hidden lg:overflow-hidden" style="z-index:1">
+
+  <!-- Mobile Filter Bar -->
+  <div class="flex md:hidden items-center justify-center gap-1 bg-[#091811]/90 px-2 py-2 border-b border-[#2dd4bf]/10 flex-shrink-0" style="font-family:'Noto Sans KR'">
+    <button onclick="toggleFilter('cause')" id="flt-cause-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#6ab5a8] hover:text-[#fb923c] transition-all">발생 원인</button>
+    <button onclick="toggleFilter('event')" id="flt-event-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#6ab5a8] hover:text-[#2dd4bf] transition-all">핵심 사건</button>
+    <button onclick="toggleFilter('effect')" id="flt-effect-m" class="flt-btn px-4 py-1.5 rounded-full text-[12px] font-semibold text-[#6ab5a8] hover:text-[#a3e635] transition-all">파급 효과</button>
+  </div>
+
+  <!-- Graph Canvas -->
+  <div class="w-full lg:w-auto lg:flex-1 relative h-[60vh] lg:h-full order-1 lg:order-2 flex-shrink-0">
+    <canvas id="gc" class="touch-none"></canvas>
+    <div class="absolute bottom-6 left-6 z-40 flex items-center gap-1 p-1.5 zoom-ctrl shadow-2xl">
+      <button onclick="zoom(1.2)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3a2c] text-[#c0ddd6] transition-all" title="Zoom In"><span class="material-symbols-outlined text-[18px]">add</span></button>
+      <div class="w-px h-4 bg-[#2dd4bf]/15"></div>
+      <button onclick="zoom(0.8)" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3a2c] text-[#c0ddd6] transition-all" title="Zoom Out"><span class="material-symbols-outlined text-[18px]">remove</span></button>
+      <div class="w-px h-4 bg-[#2dd4bf]/15"></div>
+      <button onclick="fitView()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3a2c] text-[#c0ddd6] transition-all" title="Fit"><span class="material-symbols-outlined text-[18px]">center_focus_strong</span></button>
+      <button onclick="toggleLabels()" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[#1c3a2c] text-[#c0ddd6] transition-all" title="Labels"><span class="material-symbols-outlined text-[18px]">label</span></button>
+    </div>
+    <div class="absolute bottom-6 right-6 z-40" style="display:none"><span id="status" class="text-xs font-mono text-[#6ab5a8]">Ready</span></div>
+  </div>
+
+  <!-- Left Inspector Sidebar -->
+  <aside class="w-full lg:w-72 flex-shrink-0 h-auto lg:h-full min-h-[40vh] flex flex-col p-5 gap-4 z-40 order-2 lg:order-1">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-xl overflow-hidden bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[#2dd4bf] text-xl">memory</span>
+      </div>
+      <div>
+        <h3 class="text-[15px] font-bold text-[#c0ddd6]">Inspector</h3>
+        <p class="text-[10px] uppercase tracking-wider text-[#6ab5a8]/60">JEJU Graph Explorer</p>
+      </div>
+    </div>
+    <div class="neon-line flex-shrink-0"></div>
+    <div class="flex gap-1.5 p-1 bg-[#091811]/80 rounded-lg flex-shrink-0 border border-[#2dd4bf]/08" style="font-family:'Noto Sans KR'">
+      <button id="tab-btn-detail" onclick="switchTab('detail')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#2dd4bf]/15 text-[#2dd4bf]">상세 정보</button>
+      <button id="tab-btn-list" onclick="switchTab('list')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#6ab5a8] hover:bg-[#1c3a2c]">구조도</button>
+      <button id="tab-btn-search" onclick="switchTab('search')" class="flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#6ab5a8] hover:bg-[#1c3a2c]">검색</button>
+    </div>
+    <div class="flex-grow flex flex-col overflow-y-auto overflow-x-hidden" style="font-family:'Noto Sans KR'">
+      <div id="tab-detail" class="flex flex-col h-full">
+        <div id="no-sel" class="flex-1 flex flex-col items-center justify-center opacity-30 text-center gap-4 h-full">
+          <div class="w-16 h-16 rounded-full border border-[#2dd4bf]/20 flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl text-[#2dd4bf]">memory</span>
+          </div>
+          <p class="text-sm text-[#6ab5a8]">노드를 클릭하면<br>상세 정보가 나타납니다</p>
+        </div>
+        <div id="det" class="hidden flex-col gap-3 h-full pb-4"></div>
+      </div>
+      <div id="tab-search" class="hidden flex-col h-full">
+        <div id="search-results-list" class="flex flex-col gap-2">
+          <div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>
+        </div>
+      </div>
+      <div id="tab-list" class="hidden flex-col h-full gap-4 pb-4 px-1"></div>
+    </div>
+  </aside>
+
+  <div id="tip"><div class="tt"></div><div class="tc"></div><div class="td"></div></div>
+  <div id="ctx-menu">
+    <div class="ctx-item" onclick="focusSelected()"><span class="material-symbols-outlined" style="font-size:16px">visibility</span> 상세 보기</div>
+    <div class="ctx-item danger" onclick="confirmDelete()"><span class="material-symbols-outlined" style="font-size:16px">delete</span> 노드 삭제</div>
+  </div>
+  <div id="modal-overlay">
+    <div id="modal">
+      <h3>노드를 삭제할까요?</h3>
+      <p id="modal-msg">이 노드와 연결된 엣지가 모두 삭제됩니다.</p>
+      <div class="modal-btns"><button onclick="closeModal()">취소</button><button class="confirm" onclick="executeDelete()">삭제</button></div>
+    </div>
+  </div>
+
+  <!-- Right Insight Panel -->
+  <div id="insight-panel" class="w-full lg:w-80 flex-shrink-0 h-auto lg:h-full min-h-[40vh] z-40 flex flex-col p-5 overflow-hidden order-3" style="font-family:'Noto Sans KR'">
+    <div class="flex items-center justify-between mb-5 pb-4 border-b border-[#2dd4bf]/10">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-[#2dd4bf] text-[20px]">memory</span>
+        <h2 class="text-[15px] font-bold text-[#c0ddd6]">제주반도체 인사이트</h2>
+      </div>
+      <span class="text-[10px] font-mono text-[#2dd4bf]/40 bg-[#2dd4bf]/5 border border-[#2dd4bf]/15 px-2 py-0.5 rounded-full">LIVE</span>
+    </div>
+    <div id="insight-panel-content" class="flex-1 overflow-y-auto pr-1 flex flex-col gap-4 pb-6">
+      <!-- Insights injected by JS -->
+    </div>
+  </div>
+</main>
+
+<script src="jeju_data.js" id="data-script"></script>
+<script src="insights_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+// ── Starfield ──
+(function() {
+  const sc=document.getElementById('star-canvas'), sx=sc.getContext('2d'); let stars=[];
+  function resizeStar(){ sc.width=window.innerWidth; sc.height=window.innerHeight; stars=[];
+    for(let i=0;i<220;i++) stars.push({x:Math.random()*sc.width,y:Math.random()*sc.height,r:Math.random()*1.4+0.2,o:Math.random()*0.6+0.1,speed:Math.random()*0.15+0.02,phase:Math.random()*Math.PI*2}); }
+  function drawStar(t){ sx.clearRect(0,0,sc.width,sc.height);
+    stars.forEach(s=>{ const ao=s.o*(0.7+0.3*Math.sin(t*0.001*s.speed+s.phase)); sx.beginPath(); sx.arc(s.x,s.y,s.r,0,Math.PI*2); sx.fillStyle=`rgba(192,230,218,${ao})`; sx.fill(); });
+    requestAnimationFrame(drawStar); }
+  window.addEventListener('resize',resizeStar); resizeStar(); drawStar(0);
+})();
+
+// ── Insights ──
+function renderInsights() {
+  const container=document.getElementById('insight-panel-content');
+  if(!window.INSIGHTS_DB){ container.innerHTML='<div class="text-sm opacity-40 text-center py-10 text-[#6ab5a8]">인사이트 데이터가 없습니다.</div>'; return; }
+  const filtered=window.INSIGHTS_DB.filter(ins=>ins.targetGraph==='jeju_graph.html');
+  if(!filtered.length){ container.innerHTML='<div class="text-sm opacity-40 text-center py-10 text-[#6ab5a8]">등록된 인사이트가 없습니다.</div>'; return; }
+  const sorted=[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let html='';
+  sorted.forEach(ins=>{
+    const pContent=marked.parse(ins.content);
+    const clickable=ins.targetNodes&&ins.targetNodes.length>0;
+    const onClickAttr=clickable?`onclick="gtag('event','insight_click',{insight_title:'${ins.title.replace(/'/g,'')}',workspace:'jeju_graph'}); window.focusNode && window.focusNode('${ins.targetNodes[0]}');"`:'';
+    const hoverClass=clickable?'cursor-pointer hover:border-[#2dd4bf]/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2dd4bf]/10 transition-all duration-200':'';
+    html+=`<div class="bg-[#0e221a]/80 border border-[#2dd4bf]/15 rounded-2xl p-4 ${hoverClass}" ${onClickAttr}>
+      <div class="flex justify-between items-start mb-2">
+        <div class="text-[10px] font-mono opacity-50 bg-black/30 px-2 py-0.5 rounded-md">${ins.date}</div>
+        ${clickable?`<span class="material-symbols-outlined text-[14px] text-[#2dd4bf]/50">touch_app</span>`:''}
+      </div>
+      <h3 class="font-bold text-[#c0ddd6] text-[14px] mb-1.5 leading-snug">${ins.title}</h3>
+      <p class="text-[11px] text-[#a3e635] font-semibold mb-3 border-l-2 border-[#a3e635]/40 pl-2">${ins.summary}</p>
+      <div class="prose prose-invert prose-sm max-w-none text-[12px] leading-relaxed text-[#6ab5a8]">${pContent}</div>
+    </div>`;
+  });
+  container.innerHTML=html;
+}
+
+// ── Graph Engine ──
+const COL={ event:'#2dd4bf', cause:'#fb923c', effect:'#a3e635' };
+const RAD={ event:26, cause:17, effect:15 };
+const PICK_NODES = ['ev_jj_1', 'ev_jj_2', 'ef_jj_2'];
+let G={nodes:[],edges:[]}, camera={x:0,y:0,s:1};
+let drag=null,pan=null,hovered=null,selected=null,showL=true;
+let raf=null,alpha=0,searchQuery='',searchMatches=[],pendingDelete=null,hasChanges=false,activeFilter=null;
+const canvas=document.getElementById('gc'), ctx=canvas.getContext('2d');
+const tip=document.getElementById('tip'), ctxMenu=document.getElementById('ctx-menu');
+
+function resizeCanvas(){ const r=canvas.parentElement.getBoundingClientRect(); canvas.width=r.width; canvas.height=r.height; }
+window.addEventListener('resize',()=>{ resizeCanvas(); fitView(); }); resizeCanvas();
+
+async function loadData(){
+  try{
+    if(window.DATA) G=JSON.parse(JSON.stringify(window.DATA)); else G={nodes:[],edges:[]};
+    G.nodes.forEach(n=>{ n.vx=0; n.vy=0; if(n.x==null){n.x=null;n.y=null;} });
+    initPositions(); updateStats(); updateListTab(); hasChanges=false;
+    document.getElementById('save-btn').style.display='none';
+    startSim(1.0); setTimeout(fitView,600); window.focusNode=focusNode; renderInsights();
+  } catch(e){ console.error(e); }
+}
+
+function initPositions(){
+  const W=canvas.width||800, H=canvas.height||600;
+  const events=G.nodes.filter(n=>n.type==='event'), causes=G.nodes.filter(n=>n.type==='cause'), effects=G.nodes.filter(n=>n.type==='effect');
+  events.forEach((n,i)=>{ if(n.x==null){n.x=W/2+(i-(events.length-1)/2)*220+(Math.random()-.5)*40;n.y=H/2+(Math.random()-.5)*60;} n.vx=0;n.vy=0; });
+  causes.forEach((n,i)=>{ if(n.x==null){n.x=W*0.18+(Math.random()-.5)*50;n.y=80+i*(H-160)/Math.max(causes.length-1,1)+(Math.random()-.5)*25;} n.vx=0;n.vy=0; });
+  effects.forEach((n,i)=>{ if(n.x==null){n.x=W*0.82+(Math.random()-.5)*50;n.y=80+i*(H-160)/Math.max(effects.length-1,1)+(Math.random()-.5)*25;} n.vx=0;n.vy=0; });
+}
+
+function startSim(a){ alpha=a; if(!raf) loop(); }
+function loop(){ if(alpha>0.003){tick();alpha*=0.965;} draw(); raf=requestAnimationFrame(loop); }
+function tick(){
+  G.nodes.forEach(n=>{n.vx*=0.76;n.vy*=0.76;});
+  for(let i=0;i<G.nodes.length;i++) for(let j=i+1;j<G.nodes.length;j++){
+    const a=G.nodes[i],b=G.nodes[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1,f=-3000/(d*d)*alpha,fx=dx/d*f,fy=dy/d*f;
+    a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;
+  }
+  G.edges.forEach(e=>{
+    const a=G.nodes.find(n=>n.id===e.from),b=G.nodes.find(n=>n.id===e.to); if(!a||!b) return;
+    const dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1,tgt=e.shared?220:130,f=(d-tgt)*0.06*alpha,fx=dx/d*f,fy=dy/d*f;
+    a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;
+  });
+  const W=canvas.width,H=canvas.height;
+  G.nodes.forEach(n=>{n.x=Math.max(28,Math.min(W-28,n.x+n.vx));n.y=Math.max(28,Math.min(H-28,n.y+n.vy));});
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height); ctx.save(); ctx.translate(camera.x,camera.y); ctx.scale(camera.s,camera.s);
+  const now=Date.now();
+  G.edges.forEach(e=>{
+    const a=G.nodes.find(n=>n.id===e.from),b=G.nodes.find(n=>n.id===e.to); if(!a||!b) return;
+    const isConnSel=selected&&(e.from===selected.id||e.to===selected.id);
+    const isConnFlt=activeFilter&&(a.type===activeFilter||b.type===activeFilter);
+    const isConn=selected?isConnSel:(activeFilter?isConnFlt:false);
+    const fadeOut=selected?!isConnSel:(activeFilter?!isConnFlt:false);
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+    let grad=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    let ca=COL[a.type]||'#fff',cb=COL[b.type]||'#fff';
+    if(a.type==='effect'&&a.sentiment==='neg') ca='#f87171';
+    if(b.type==='effect'&&b.sentiment==='neg') cb='#f87171';
+    let al=fadeOut?'11':(e.shared?'BB':'55'); if(isConn) al='FF';
+    grad.addColorStop(0,ca+al); grad.addColorStop(1,cb+al);
+    ctx.strokeStyle=grad; ctx.lineWidth=(isConn?2.5:(e.shared?1.5:0.8))/camera.s;
+    if(isConn){ctx.shadowColor=cb;ctx.shadowBlur=12;}
+    ctx.setLineDash(e.shared?[4,4]:[]); ctx.stroke(); ctx.setLineDash([]); ctx.shadowBlur=0;
+    if(isConn&&!e.shared){const t=(now%1000)/1000,px=a.x+(b.x-a.x)*t,py=a.y+(b.y-a.y)*t;ctx.beginPath();ctx.arc(px,py,3/camera.s,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.beginPath();ctx.arc(px,py,8/camera.s,0,Math.PI*2);ctx.fillStyle=cb+'99';ctx.fill();}
+    if(!e.shared){const ang=Math.atan2(b.y-a.y,b.x-a.x),r=(RAD[b.type]||14)+3,tx=b.x-Math.cos(ang)*r,ty=b.y-Math.sin(ang)*r;ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(tx-10*Math.cos(ang-.42),ty-10*Math.sin(ang-.42));ctx.lineTo(tx-10*Math.cos(ang+.42),ty-10*Math.sin(ang+.42));ctx.fillStyle=cb+(fadeOut?'11':(isConn?'FF':'88'));ctx.fill();}
+    if(e.shared&&e.label&&showL&&!fadeOut){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;ctx.font='10px "Inter","Noto Sans KR",sans-serif';ctx.fillStyle='rgba(192,221,214,0.8)';ctx.textAlign='center';ctx.fillText(e.label,mx,my-6);}
+  });
+  G.nodes.forEach(n=>{
+    let r=RAD[n.type]||14;
+    const isH=hovered&&hovered.id===n.id,isS=selected&&selected.id===n.id,isMatch=searchQuery&&searchMatches.includes(n.id);
+    const isConnNodeSel=selected&&(n.id===selected.id||G.edges.some(e=>(e.from===selected.id&&e.to===n.id)||(e.to===selected.id&&e.from===n.id)));
+    const isConnNodeFlt=activeFilter&&(n.type===activeFilter||G.edges.some(e=>(e.from===n.id&&G.nodes.find(o=>o.id===e.to)?.type===activeFilter)||(e.to===n.id&&G.nodes.find(o=>o.id===e.from)?.type===activeFilter)));
+    const isConnNode=selected?isConnNodeSel:(activeFilter?isConnNodeFlt:false);
+    const fadeOutNode=selected?!isConnNodeSel:(activeFilter?!isConnNodeFlt:false);
+    let col=COL[n.type]||'#888';
+    if(n.type==='effect') col=n.sentiment==='neg'?'#f87171':'#a3e635';
+    if(isMatch){ctx.beginPath();ctx.arc(n.x,n.y,r+16,0,Math.PI*2);ctx.fillStyle=col+'1A';ctx.fill();ctx.beginPath();ctx.arc(n.x,n.y,r+10,0,Math.PI*2);ctx.strokeStyle=col+'88';ctx.lineWidth=1.5/camera.s;ctx.stroke();}
+    if(isH||isS){r*=1.15;ctx.beginPath();ctx.arc(n.x,n.y,r+8,0,Math.PI*2);ctx.fillStyle=col+'22';ctx.fill();}
+    if(isS){r*=1.15;ctx.beginPath();ctx.arc(n.x,n.y,r+4,0,Math.PI*2);ctx.strokeStyle=col;ctx.lineWidth=2/camera.s;ctx.stroke();}
+    let grd=ctx.createRadialGradient(n.x,n.y,r*0.5,n.x,n.y,r*2);grd.addColorStop(0,col);grd.addColorStop(1,col+'00');
+    ctx.beginPath();ctx.arc(n.x,n.y,r*2,0,Math.PI*2);ctx.fillStyle=grd;ctx.globalAlpha=fadeOutNode?0.05:0.2;ctx.fill();ctx.globalAlpha=1;
+    ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);ctx.fillStyle=col;ctx.globalAlpha=fadeOutNode?0.15:(isH||isS?1:.8);ctx.fill();ctx.globalAlpha=1;
+    ctx.beginPath();ctx.arc(n.x,n.y,r*0.3,0,Math.PI*2);ctx.fillStyle='#050d0a';ctx.globalAlpha=fadeOutNode?0.2:0.6;ctx.fill();ctx.globalAlpha=1;
+    if(showL&&!fadeOutNode){
+      let lbl=n.label.length>12?n.label.slice(0,11)+'…':n.label;
+      if(n.type==='effect') lbl=(n.sentiment==='neg'?'▼ ':'▲ ')+lbl;
+      ctx.font=(n.type==='event'?'bold ':'')+'11px "Inter","Noto Sans KR",sans-serif';
+      ctx.fillStyle=isH||isS?'#fff':'rgba(192,221,214,0.85)';ctx.textAlign='center';ctx.fillText(lbl,n.x,n.y+r+14);
+    }
+    // PICK badge
+    const isPick = PICK_NODES.includes(n.id);
+    if(isPick && !fadeOutNode) {
+      const pulse = 0.6 + 0.4 * Math.sin(now * 0.0022);
+      const pr = r + 16;
+      ctx.beginPath(); ctx.arc(n.x, n.y, pr+10, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(251,191,36,${0.07*pulse})`; ctx.fill();
+      ctx.beginPath(); ctx.arc(n.x, n.y, pr, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(251,191,36,${0.85*pulse})`;
+      ctx.lineWidth = 2.2/camera.s;
+      ctx.shadowColor='#fbbf24'; ctx.shadowBlur=16*pulse;
+      ctx.stroke(); ctx.shadowBlur=0;
+      const bText = '★ PICK';
+      ctx.font = `bold ${10/camera.s}px "Inter",sans-serif`;
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(bText).width;
+      const bw=tw+12, bh=16/camera.s, bx=n.x-bw/2, by=n.y-pr-bh-4;
+      ctx.fillStyle=`rgba(251,191,36,${0.95*pulse})`;
+      ctx.beginPath();
+      if(ctx.roundRect) { ctx.roundRect(bx,by,bw,bh,4/camera.s); } else { ctx.rect(bx,by,bw,bh); }
+      ctx.fill();
+      ctx.fillStyle='#0a0a0a';
+      ctx.fillText(bText, n.x, by+bh*0.72);
+    }
+  });
+  ctx.restore();
+}
+
+function nodeAt(x,y){ const wx=(x-camera.x)/camera.s,wy=(y-camera.y)/camera.s; for(let i=G.nodes.length-1;i>=0;i--){const n=G.nodes[i],r=(RAD[n.type]||14)+6;if(Math.hypot(n.x-wx,n.y-wy)<r) return n;} return null; }
+
+canvas.addEventListener('mousedown',e=>{ if(e.button===2) return; hideCtxMenu(); const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,nd=nodeAt(x,y); if(nd) drag={node:nd,ox:x,oy:y,nx:nd.x,ny:nd.y}; else pan={sx:x,sy:y,cx:camera.x,cy:camera.y}; });
+canvas.addEventListener('contextmenu',e=>{ e.preventDefault(); const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,nd=nodeAt(x,y); if(nd){selected=nd;showCtxMenu(e.clientX,e.clientY);} });
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  if(drag){drag.node.x=drag.nx+(x-drag.ox)/camera.s;drag.node.y=drag.ny+(y-drag.oy)/camera.s;return;}
+  if(pan){camera.x=pan.cx+(x-pan.sx);camera.y=pan.cy+(y-pan.sy);return;}
+  const nd=nodeAt(x,y);hovered=nd||null;canvas.style.cursor=nd?'pointer':'grab';
+  if(nd){tip.style.display='block';tip.style.left=Math.min(e.clientX+14,window.innerWidth-240)+'px';tip.style.top=Math.max(e.clientY+14,10)+'px';tip.querySelector('.tt').textContent=nd.label;
+    const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'+(nd.depth?' · '+nd.depth:'')+(nd.sentiment==='pos'?' (긍정)':nd.sentiment==='neg'?' (부정)':'')};
+    const tc=tip.querySelector('.tc');tc.textContent=tm[nd.type]||'';let tCol=COL[nd.type]||'#888';if(nd.type==='effect') tCol=nd.sentiment==='neg'?'#f87171':'#a3e635';tc.style.color=tCol;tip.querySelector('.td').textContent=nd.desc||'';
+  } else tip.style.display='none';
+});
+canvas.addEventListener('mouseup',e=>{ const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top; if(drag&&Math.hypot(x-drag.ox,y-drag.oy)<5){const nd=nodeAt(x,y);if(nd)selectNode(nd);} else if(pan&&Math.hypot(x-pan.sx,y-pan.sy)<5){if(selected||activeFilter){if(activeFilter)toggleFilter(activeFilter);selected=null;document.getElementById('no-sel').classList.remove('hidden');document.getElementById('det').classList.add('hidden');fitView();}} drag=null;pan=null; });
+canvas.addEventListener('wheel',e=>{ e.preventDefault();const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,d=e.deltaY>0?.88:1.14;camera.x=mx-(mx-camera.x)*d;camera.y=my-(my-camera.y)*d;camera.s=Math.max(.15,Math.min(5,camera.s*d)); },{passive:false});
+
+let initialPinchDistance=null,initialCameraS=null;
+function getTouchPos(e,i=0){const r=canvas.getBoundingClientRect();return{x:e.touches[i].clientX-r.left,y:e.touches[i].clientY-r.top};}
+canvas.addEventListener('touchstart',e=>{if(e.touches.length===1){const p=getTouchPos(e),nd=nodeAt(p.x,p.y);if(nd)drag={node:nd,ox:p.x,oy:p.y,nx:nd.x,ny:nd.y};else pan={sx:p.x,sy:p.y,cx:camera.x,cy:camera.y};}else if(e.touches.length===2){drag=null;pan=null;const p1=getTouchPos(e,0),p2=getTouchPos(e,1);initialPinchDistance=Math.hypot(p1.x-p2.x,p1.y-p2.y);initialCameraS=camera.s;}},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(e.touches.length===1){const p=getTouchPos(e);if(drag){drag.node.x=drag.nx+(p.x-drag.ox)/camera.s;drag.node.y=drag.ny+(p.y-drag.oy)/camera.s;}else if(pan){camera.x=pan.cx+(p.x-pan.sx);camera.y=pan.cy+(p.y-pan.sy);}}else if(e.touches.length===2&&initialPinchDistance){const p1=getTouchPos(e,0),p2=getTouchPos(e,1);camera.s=Math.max(.15,Math.min(5,initialCameraS*Math.hypot(p1.x-p2.x,p1.y-p2.y)/initialPinchDistance));}},{passive:false});
+canvas.addEventListener('touchend',()=>{drag=null;pan=null;initialPinchDistance=null;});
+
+function handleSearch(q){
+  searchQuery=q.trim().toLowerCase();
+  if(!searchQuery){searchMatches=[];document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">상단 검색창에 키워드를 입력하세요.</div>';return;}
+  switchTab('search');
+  searchMatches=G.nodes.filter(n=>(n.label+' '+(n.desc||'')).toLowerCase().includes(searchQuery)).map(n=>n.id);
+  const results=G.nodes.filter(n=>searchMatches.includes(n.id));
+  if(!results.length){document.getElementById('search-results-list').innerHTML='<div class="text-center opacity-40 text-xs py-10">검색 결과가 없습니다.</div>';return;}
+  const tm={event:'핵심 사건',cause:'원인·배경',effect:'파급효과'};
+  document.getElementById('search-results-list').innerHTML=results.map(n=>{
+    let tCol=COL[n.type]||'#888';if(n.type==='effect') tCol=n.sentiment==='neg'?'#f87171':'#a3e635';
+    const hl=n.label.replace(new RegExp(searchQuery,'gi'),m=>`<mark class="bg-[#2dd4bf]/30 text-[#5eead4] rounded px-0.5">${m}</mark>`);
+    return `<div class="p-3 rounded-lg bg-[#142b21]/50 border border-[#2dd4bf]/15 mb-2 cursor-pointer hover:border-[#2dd4bf]/40 transition-all" onclick="focusNode('${n.id}')"><div class="text-sm font-semibold mb-1 text-[#c0ddd6]">${hl}</div><div class="text-[10px] opacity-70 flex items-center gap-1" style="color:${tCol}"><span class="w-1.5 h-1.5 rounded-full" style="background:${tCol}"></span>${tm[n.type]||n.type}${n.depth?' · '+n.depth:''}</div></div>`;
+  }).join('');
+}
+document.getElementById('search-input').addEventListener('input',e=>handleSearch(e.target.value));
+
+function focusNode(id){const nd=G.nodes.find(n=>n.id===id);if(!nd) return;selectNode(nd);camera.x=canvas.width/2-nd.x*camera.s-150;camera.y=canvas.height/2-nd.y*camera.s;}
+function selectNode(nd){
+  selected=nd;switchTab('detail');document.getElementById('no-sel').classList.add('hidden');
+  const det=document.getElementById('det');det.classList.remove('hidden');det.classList.add('flex');
+  let col=COL[nd.type]||'#888',tTitle=nd.type==='event'?'핵심 사건':nd.type==='cause'?'발생 원인':'파급 효과';
+  if(nd.type==='effect'&&nd.sentiment==='neg'){col='#f87171';tTitle='부정적 파급 효과';}
+  const linksIn=G.edges.filter(e=>e.to===nd.id).map(e=>G.nodes.find(n=>n.id===e.from)).filter(Boolean);
+  const linksOut=G.edges.filter(e=>e.from===nd.id).map(e=>G.nodes.find(n=>n.id===e.to)).filter(Boolean);
+  let tagsHTML='';
+  if(nd.depth) tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border" style="border-color:${col}44;color:${col}">${nd.depth}</span>`;
+  if(nd.type==='effect'){if(nd.sentiment==='pos') tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border border-[#a3e635]/40 text-[#a3e635] font-bold">+ 긍정적</span>`;if(nd.sentiment==='neg') tagsHTML+=`<span class="px-2 py-0.5 rounded-md text-[10px] border border-[#f87171]/40 text-[#f87171] font-bold">- 리스크</span>`;}
+  det.innerHTML=`<div class="space-y-1"><span class="text-[10px] uppercase font-bold tracking-widest flex items-center gap-2" style="color:${col}"><span class="w-2 h-2 rounded-full animate-pulse" style="background:${col}"></span>${tTitle}</span><h2 class="font-['Manrope'] font-bold text-lg text-[#c0ddd6] leading-tight mt-1 mb-2">${nd.label}</h2><div class="flex gap-1 mb-3">${tagsHTML}</div></div>
+  <div class="p-3 rounded-lg bg-[#142b21]/50 border border-[#2dd4bf]/10 shadow-inner"><p class="text-[#6ab5a8] text-xs leading-relaxed">${nd.desc||'설명이 없습니다.'}</p></div>
+  <div class="space-y-4 mt-2 flex-grow">
+    ${linksIn.length?`<div><span class="text-[10px] uppercase font-bold text-[#fb923c] tracking-widest block mb-2 opacity-80">이전 연결</span><div class="flex flex-wrap gap-1.5">${linksIn.map(l=>`<span class="px-2 py-1 rounded-md bg-[#fb923c]/10 border border-[#fb923c]/20 text-[10px] text-[#fb923c] cursor-pointer hover:bg-[#fb923c]/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}</div></div>`:''}
+    ${linksOut.length?`<div><span class="text-[10px] uppercase font-bold text-[#2dd4bf] tracking-widest block mb-2 opacity-80">이후 연결</span><div class="flex flex-wrap gap-1.5">${linksOut.map(l=>`<span class="px-2 py-1 rounded-md bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 text-[10px] text-[#2dd4bf] cursor-pointer hover:bg-[#2dd4bf]/20" onclick="selectNodeById('${l.id}')">${l.label}</span>`).join('')}</div></div>`:''}
+  </div>
+  <button onclick="confirmDelete()" class="mt-6 w-full py-2.5 rounded-lg border border-[#f87171]/30 text-[#f87171] font-bold text-xs hover:bg-[#f87171]/10 active:scale-95 duration-200 flex justify-center items-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> 노드 삭제</button>`;
+}
+function selectNodeById(id){const nd=G.nodes.find(n=>n.id===id);if(nd)selectNode(nd);}
+
+function switchTab(t){
+  ['detail','search','list'].forEach(tab=>{document.getElementById('tab-'+tab).classList.toggle('hidden',tab!==t);document.getElementById('tab-'+tab).classList.toggle('flex',tab===t);});
+  ['detail','list','search'].forEach(tab=>{document.getElementById('tab-btn-'+tab).className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out text-[#6ab5a8] hover:bg-[#1c3a2c]';});
+  document.getElementById('tab-btn-'+t).className='flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ease-in-out bg-[#2dd4bf]/15 text-[#2dd4bf]';
+}
+function toggleFilter(t){
+  if(activeFilter===t) activeFilter=null; else activeFilter=t;
+  if(activeFilter){selected=null;document.getElementById('no-sel').classList.remove('hidden');document.getElementById('det').classList.add('hidden');}
+  const btns={'cause':{ids:['flt-cause','flt-cause-m'],c:'#fb923c'},'event':{ids:['flt-event','flt-event-m'],c:'#2dd4bf'},'effect':{ids:['flt-effect','flt-effect-m'],c:'#a3e635'}};
+  Object.keys(btns).forEach(k=>{btns[k].ids.forEach(id=>{const b=document.getElementById(id);if(!b) return;if(k===activeFilter){b.style.backgroundColor=btns[k].c+'33';b.style.color=btns[k].c;}else{b.style.backgroundColor='transparent';b.style.color='';}});});
+}
+function showCtxMenu(x,y){ctxMenu.style.display='block';ctxMenu.style.left=Math.min(x,window.innerWidth-150)+'px';ctxMenu.style.top=Math.min(y,window.innerHeight-100)+'px';}
+function hideCtxMenu(){ctxMenu.style.display='none';}
+function focusSelected(){hideCtxMenu();if(selected)selectNode(selected);}
+function confirmDelete(){hideCtxMenu();if(!selected) return;pendingDelete=selected;const connCount=G.edges.filter(e=>e.from===selected.id||e.to===selected.id).length;document.getElementById('modal-msg').textContent=`"${selected.label}" 관련 엣지 ${connCount}개가 함께 삭제됩니다.`;document.getElementById('modal-overlay').classList.add('show');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');pendingDelete=null;}
+function executeDelete(){if(!pendingDelete) return;const id=pendingDelete.id;G.nodes=G.nodes.filter(n=>n.id!==id);G.edges=G.edges.filter(e=>e.from!==id&&e.to!==id);if(selected&&selected.id===id){selected=null;document.getElementById('no-sel').classList.remove('hidden');document.getElementById('det').classList.add('hidden');}pendingDelete=null;closeModal();updateStats();updateListTab();hasChanges=true;document.getElementById('save-btn').style.display='block';startSim(.4);}
+function updateStats(){document.getElementById('hstats-nodes').textContent=`Nodes: ${G.nodes.length}`;document.getElementById('hstats-edges').textContent=`Edges: ${G.edges.length}`;}
+function updateListTab(){
+  const listEl=document.getElementById('tab-list');
+  const causes=G.nodes.filter(n=>n.type==='cause'),events=G.nodes.filter(n=>n.type==='event'),effects=G.nodes.filter(n=>n.type==='effect');
+  const rc=(title,items,color)=>{ if(!items.length) return '';
+    return `<div><div class="text-[11px] uppercase font-bold tracking-widest mb-3 flex items-center gap-2" style="color:${color}"><span class="w-1.5 h-1.5 rounded-full" style="background:${color}"></span>${title}<span class="opacity-50 text-[10px]">(${items.length})</span></div><div class="flex flex-col gap-2 pl-3 border-l pb-4" style="border-color:${color}33">${items.map(n=>{let label=n.label;if(n.type==='effect') label=(n.sentiment==='neg'?'<span style="color:#f87171">▼</span> ':'<span style="color:#a3e635">▲</span> ')+label;return `<div class="text-[13px] text-[#6ab5a8] hover:text-[#c0ddd6] cursor-pointer transition-colors leading-snug break-keep" onclick="focusNode('${n.id}')" title="${n.label}">${label}</div>`;}).join('')}</div></div>`;};
+  listEl.innerHTML=rc('발생 원인 (Cause)',causes,COL['cause'])+rc('핵심 사건 (Event)',events,COL['event'])+rc('파급 효과 (Effect)',effects,COL['effect']);
+}
+function fitView(){if(!G.nodes.length) return;const xs=G.nodes.map(n=>n.x),ys=G.nodes.map(n=>n.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),pad=80,cw=canvas.width,ch=canvas.height;camera.s=Math.min((cw-pad*2)/Math.max(maxX-minX,1),(ch-pad*2)/Math.max(maxY-minY,1),1.5);camera.x=pad-minX*camera.s+((cw-pad*2)-(maxX-minX)*camera.s)/2;camera.y=pad-minY*camera.s+((ch-pad*2)-(maxY-minY)*camera.s)/2;}
+function zoom(f){const cx=canvas.width/2,cy=canvas.height/2;camera.x=cx-(cx-camera.x)*f;camera.y=cy-(cy-camera.y)*f;camera.s=Math.max(.15,Math.min(5,camera.s*f));}
+function toggleLabels(){showL=!showL;}
+function saveChanges(){const out={...G,meta:{...G.meta,version:(parseFloat(G.meta?.version||1)+0.1).toFixed(1),updated:new Date().toISOString().slice(0,10)}};const jsContent="window.DATA = "+JSON.stringify(out,null,2)+";";const blob=new Blob([jsContent],{type:'application/javascript'});const url=URL.createObjectURL(blob);const scriptName=document.getElementById('data-script').getAttribute('src');const a=document.createElement('a');a.href=url;a.download=scriptName;a.click();URL.revokeObjectURL(url);hasChanges=false;document.getElementById('save-btn').style.display='none';}
+function exportJSON(){const blob=new Blob([JSON.stringify(G,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='jeju_graph_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);}
+document.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&selected&&document.activeElement===document.body){e.preventDefault();confirmDelete();}if(e.key==='Escape'){closeModal();hideCtxMenu();if(searchQuery){document.getElementById('search-input').value='';handleSearch('');}}if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();document.getElementById('search-input').focus();switchTab('search');}});
+
+loadData(); if(!raf) loop();
+</script>
+</body>
+</html>

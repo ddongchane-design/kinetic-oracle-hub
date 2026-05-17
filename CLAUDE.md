@@ -222,4 +222,5 @@ Vercel이 GitHub main 브랜치를 감지해 자동 배포. 완료까지 1~2분 
 | `humanoid_graph.html` | 휴머노이드 대량생산 & 상업화 | `humanoid_data.js` | `ev_hm_1`, `ev_hm_2`, `ev_hm_4` |
 | `eth_graph.html` | 이더리움 & DeFi·RWA 분석 | `eth_data.js` | `ev_eth_1`, `ef_eth_4`, `ef_eth_7` |
 | `bci_graph.html` | 뇌컴퓨터 인터페이스(BCI) 산업 분석 | `bci_data.js` | `ev_bci_2`, `ef_bci_5`, `ef_bci_8` |
+| `jeju_graph.html` | 제주반도체 AI 메모리 팹리스 분석 | `jeju_data.js` | `ev_jj_1`, `ev_jj_2`, `ef_jj_2` |
 | `generic_graph.html` | 범용/테스트 | `data.js` | - |
