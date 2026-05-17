@@ -225,6 +225,7 @@
         url: "jeju_graph.html",
         date: "2026-05-17T00:00:00",
         displayDate: "2026-05-17",
+        pick: "다진 픽",
         title: "💾 제주반도체 분석",
         desc: "AI 메모리 어닝 서프라이즈(매출 300% 급등)·웨이퍼 테스트 계약·세력 수급 포착이 맞물린 LPDRAM 팹리스 투자 분기점. 구조적 AI 수혜인지 단기 세력 장세인지 인과관계로 분석",
         icon: "memory",
@@ -281,8 +282,9 @@
             <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 border transition-transform duration-500 group-hover:scale-110 ${w.iconClass}">
               <span class="material-symbols-outlined text-3xl">${w.icon}</span>
             </div>
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-800/80 border border-slate-700/80 text-slate-400">🕒 업데이트: ${w.displayDate}</span>
+              ${w.pick ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 border border-amber-400/50 text-amber-300">⭐ ${w.pick}</span>` : ''}
             </div>
             <h2 class="text-2xl font-bold mb-2 text-slate-100 transition-colors ${w.titleHover}">${w.title}</h2>
             <p class="text-slate-400 text-[13px] leading-relaxed flex-grow font-light">
