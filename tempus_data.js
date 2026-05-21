@@ -11,7 +11,7 @@ window.DATA = {
     // ==========================================
     // 2. 핵심 사건 (Event) — Tempus가 실행한 것들
     // ==========================================
-    { "id": "ev_t_1", "type": "event", "label": "나스닥 IPO (TEM)", "desc": "2024년 6월 NASDAQ 상장. 공모가 $37, 시가총액 약 $6B. 헬스케어 AI 섹터 최대 IPO 중 하나. Eric Lefkofsky(그루폰 공동창업자)가 창업·CEO." },
+    { "id": "ev_t_1", "type": "event", "label": "나스닥 IPO (TEM)", "desc": "2024년 6월 NASDAQ 상장. 공모가 $37. 2026년 5월 현재 주가는 보호예수(Lock-up) 해제 물량 출회, 고금리 장기화 및 SBC 비용의 장부상 순손실 반영으로 인해 $45.88선으로 조정(내림추세)을 겪고 있으나 밸류에이션 부담은 완화됨." },
     { "id": "ev_t_2", "type": "event", "label": "세계 최대 임상-유전체 DB 구축", "desc": "미국 50개 이상 대형 병원 시스템과 파트너십. 6,000만 건 이상 익명화 환자 기록 + 유전체(NGS) 데이터 결합. 단순 EMR이 아닌 분자 프로파일 연계 멀티모달 데이터베이스." },
     { "id": "ev_t_3", "type": "event", "label": "빅파마 AI 파트너십 체결", "desc": "Pfizer, AstraZeneca, Novartis, GSK 등 글로벌 상위 빅파마 대부분과 임상시험 최적화·바이오마커 발굴·약물 반응 예측 AI 계약 체결. 다수가 장기 로열티 구조." },
     { "id": "ev_t_4", "type": "event", "label": "Ambry Genetics 인수", "desc": "2024년 유전자 검사 전문 기업 Ambry Genetics를 $600M에 인수. 소비자·임상 유전체 검사 역량을 수직 통합, 데이터 수집 속도 비약적 가속." },
@@ -20,12 +20,14 @@ window.DATA = {
     // ==========================================
     // 3. 파급 효과 (Effect) — 인과적 결과
     // ==========================================
-    { "id": "ef_t_1", "type": "effect", "label": "진단 AI SaaS 수익화", "depth": "단기", "sentiment": "pos", "desc": "병원·보험사에 TIME 플랫폼을 구독 형태로 공급. 2024년 기준 연매출 $700M+, YoY 30%+ 성장. 반복 수익(Recurring Revenue) 구조로 현금흐름 안정성 확보." },
-    { "id": "ef_t_2", "type": "effect", "label": "파마 파트너십 로열티 수익", "depth": "중기", "sentiment": "pos", "desc": "빅파마가 임상시험을 Tempus 데이터로 설계·실행하며 성공 시 로열티 지급. 선행 계약금 + 마일스톤 + 로열티 3중 수익 구조. 고마진 반복 수익원." },
-    { "id": "ef_t_3", "type": "effect", "label": "데이터 경제적 해자", "depth": "장기", "sentiment": "pos", "desc": "데이터가 쌓일수록 AI 모델 정확도 향상 → 더 많은 병원·파마 파트너 유인 → 더 많은 데이터 수집의 선순환. 경쟁사가 복제 불가한 독점적 임상 데이터셋." },
+    { "id": "ef_t_1", "type": "effect", "label": "진단 AI SaaS 수익화", "depth": "단기", "sentiment": "pos", "desc": "TIME 플랫폼 구독 수익화. 최근 12개월(TTM) 매출은 $1.364B(13억 6,400만 달러)를 기록해 2배 가까이 성장했으며, 2025년 전체 매출도 전년비 83.4% 폭발한 $1.272B를 달성함." },
+    { "id": "ef_t_2", "type": "effect", "label": "파마 파트너십 로열티 수익", "depth": "중기", "sentiment": "pos", "desc": "빅파마가 임상시험을 Tempus 데이터로 설계·실행하며 성공 시 로열티 지급. 최근 데이터 부문 총 계약 잔액(TCV) 11억 달러 돌파 및 순매출 유지율(NRR) 126%로 강력한 락인 입증." },
+    { "id": "ef_t_3", "type": "effect", "label": "데이터 경제적 해자", "depth": "장기", "sentiment": "pos", "desc": "암 재발 예측 MRD(미세잔존질환) 검사량이 2026년 Q1 6,500건(전년비 500% 폭발)을 달성하는 등 독점 임상-유전체 DB를 기반으로 한 데이터 플라이휠 해자가 실질 지표로 증명됨." },
     { "id": "ef_t_4", "type": "effect", "label": "헬스케어 AI 인프라 독점", "depth": "장기", "sentiment": "pos", "desc": "임상 데이터(수집) → AI 모델(분석) → SaaS 플랫폼(적용) → 유전체 검사(실행)까지 수직 통합 완성. 의료 AI의 AWS와 같은 인프라 플레이어로 포지셔닝." },
-    { "id": "ef_t_5", "type": "effect", "label": "수익성 확보 지연 리스크", "depth": "중기", "sentiment": "neg", "desc": "[핵심 리스크] 공격적 M&A와 R&D 투자로 영업적자 지속. 2024년 순손실 $700M 수준. 금리 고환경에서 BEP 달성 전 자금 조달 어려움 발생 시 밸류에이션 디스카운트 압력." },
-    { "id": "ef_t_6", "type": "effect", "label": "빅테크 경쟁 위협", "depth": "장기", "sentiment": "neg", "desc": "[구조적 리스크] Google Health, Microsoft Nuance, AWS HealthLake 등 자본·인프라 압도적 빅테크의 헬스케어 AI 진출. 데이터 독점성이 무너질 경우 밸류에이션 근거 붕괴." }
+    { "id": "ef_t_5", "type": "effect", "label": "수익성 확보 지연 리스크", "depth": "중기", "sentiment": "neg", "desc": "[재무 리스크] R&D 및 주식보상(SBC) 비용으로 GAAP 순이익 기준 흑자는 2028년 중순까지 지연 가능성이 큼. 단, 2026년 조정 EBITDA 기준 첫 흑자 전환 가이드라인($65M) 및 연간 매출 상향으로 적자 우려는 크게 해소됨." },
+    { "id": "ef_t_6", "type": "effect", "label": "빅테크 경쟁 위협", "depth": "장기", "sentiment": "neg", "desc": "[구조적 리스크] MS(Nuance 인수), 구글 헬스, 아마존(AWS HealthOmics) 등 압도적 빅테크가 천문학적 자본력과 클라우드를 무기로 헬스케어 AI에 진입하여 단가 인하 및 시장 점유율 방어를 위협함." },
+    { "id": "ef_t_7", "type": "effect", "label": "SBC 및 지분 희석 리스크", "depth": "중기", "sentiment": "neg", "desc": "[주주 리스크] 2034년까지 매년 최대 5%의 주식을 신규 보상용으로 채우는 에버그린 조항으로 지분 희석이 발생함. 단, 매출 성장률(36~40%)이 이를 압도하고 있으나 기부여 미인식 SBC 2.96억 달러는 2028년 중순까지 매분기 장부상 순손실 압박 요인임." },
+    { "id": "ef_t_8", "type": "effect", "label": "빅파마 매출 편중 리스크", "depth": "중기", "sentiment": "neg", "desc": "[구조적 리스크] 매출 상당 부분이 특정 글로벌 빅파마와의 대형 데이터 라이선싱 계약에 편중됨. 계약 갱신 실패 시 매출이 급락할 수 있으며, 진정한 구독형(SaaS)이라기보다 일회성 성격의 B2B 거래에 가깝다는 비판이 존재함." }
   ],
   "edges": [
     // 1. 원인 → 핵심 사건
@@ -56,12 +58,15 @@ window.DATA = {
     // 5. 리스크 연결
     { "from": "ev_t_1", "to": "ef_t_5", "label": "고밸류 + 적자 구조" },
     { "from": "ev_t_4", "to": "ef_t_5", "shared": true, "label": "M&A 비용 부담" },
-    { "from": "ef_t_4", "to": "ef_t_6", "shared": true, "label": "시장 매력도 → 빅테크 진출" }
+    { "from": "ef_t_4", "to": "ef_t_6", "shared": true, "label": "시장 매력도 → 빅테크 진출" },
+    { "from": "ev_t_1", "to": "ef_t_7", "label": "상장사 인센티브 제도" },
+    { "from": "ev_t_3", "to": "ef_t_8", "label": "특정 빅파마 대형 계약" },
+    { "from": "ef_t_7", "to": "ef_t_5", "shared": true, "label": "SBC 비용 장부 타격" }
   ],
   "meta": {
     "created": "2026-04-15",
-    "updated": "2026-04-15",
-    "version": "1.0",
+    "updated": "2026-05-21",
+    "version": "1.1",
     "description": "Tempus AI 헬스케어 AI 플랫폼 인과관계 분석 그래프"
   }
 };
