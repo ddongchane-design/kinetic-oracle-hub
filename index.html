@@ -275,8 +275,8 @@
       }
     }
 
-    // 카드 클릭 및 조회수 누적 비동기 처리 (최대 500ms 타임아웃 보장)
-    async function handleCardClick(event, url, title) {
+    // 카드 클릭 및 조회수 누적 비동기 처리 (keepalive를 활용해 페이지 이동 시 요청 취소 방지)
+    function handleCardClick(event, url, title) {
       event.preventDefault();
       
       // GA4 이벤트
@@ -284,20 +284,22 @@
         gtag('event', 'card_click', { card_title: title, card_url: url });
       }
 
-      const navigate = () => { window.location.href = url; };
-
-      if (supabaseClient) {
-        const rpcPromise = supabaseClient.rpc('increment_clicks', { target_url: url });
-        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
-        
-        try {
-          await Promise.race([rpcPromise, timeoutPromise]);
-        } catch (err) {
-          console.error("Supabase RPC error:", err);
-        }
+      // Supabase RPC 직접 fetch 호출 (keepalive 활성화)
+      if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY" && SUPABASE_ANON_KEY !== "") {
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_clicks`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ target_url: url }),
+          keepalive: true
+        }).catch(err => console.error("Supabase click counter track error:", err));
       }
       
-      navigate();
+      // 딜레이 없이 즉시 대시보드 페이지로 이동
+      window.location.href = url;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
