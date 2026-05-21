@@ -12,6 +12,8 @@
     gtag('config', 'G-6CXHMKPHPV');
   </script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script>
@@ -260,6 +262,44 @@
       `;
     }
 
+    // Supabase 설정
+    const SUPABASE_URL = "https://babcixppuyoujkqgeasi.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_Xwoi23s4sTnUb0b6cHZIKQ__s3aXTBL"; 
+
+    let supabaseClient = null;
+    if (SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY" && SUPABASE_ANON_KEY !== "") {
+      try {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch (e) {
+        console.error("Supabase Client initialization failed:", e);
+      }
+    }
+
+    // 카드 클릭 및 조회수 누적 비동기 처리 (최대 500ms 타임아웃 보장)
+    async function handleCardClick(event, url, title) {
+      event.preventDefault();
+      
+      // GA4 이벤트
+      if (typeof gtag === 'function') {
+        gtag('event', 'card_click', { card_title: title, card_url: url });
+      }
+
+      const navigate = () => { window.location.href = url; };
+
+      if (supabaseClient) {
+        const rpcPromise = supabaseClient.rpc('increment_clicks', { target_url: url });
+        const timeoutPromise = new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+          await Promise.race([rpcPromise, timeoutPromise]);
+        } catch (err) {
+          console.error("Supabase RPC error:", err);
+        }
+      }
+      
+      navigate();
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       // 1. Render Workspace Grid (Sorted by Date)
       // 카드 날짜를 해당 그래프의 최신 인사이트 날짜로 자동 업데이트
@@ -277,8 +317,9 @@
       WORKSPACES.sort((a,b) => new Date(b.date) - new Date(a.date));
       let wHtml = '';
       WORKSPACES.forEach(w => {
+        const safeId = w.url.replace(/[^a-zA-Z0-9]/g, '-');
         wHtml += `
-          <a href="${w.url}" onclick="gtag('event','card_click',{card_title:'${w.title}',card_url:'${w.url}'});" class="group relative bg-card/60 backdrop-blur-xl border border-slate-600/40 p-8 rounded-[2rem] transition-all duration-500 flex flex-col hover:-translate-y-2 ${w.cardHover}">
+          <a href="${w.url}" onclick="handleCardClick(event, '${w.url}', '${w.title}');" class="group relative bg-card/60 backdrop-blur-xl border border-slate-600/40 p-8 rounded-[2rem] transition-all duration-500 flex flex-col hover:-translate-y-2 ${w.cardHover}">
             <div class="absolute inset-0 bg-gradient-to-br ${w.bgGradient} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[2rem]"></div>
             <div class="flex items-center gap-3 mb-4">
               <div class="w-14 h-14 rounded-2xl flex items-center justify-center border transition-transform duration-500 group-hover:scale-110 ${w.iconClass}">
@@ -289,6 +330,10 @@
             <div class="flex items-center gap-2 mb-2 flex-wrap">
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-800/80 border border-slate-700/80 text-slate-400">🕒 업데이트: ${w.displayDate}</span>
               ${w.pick ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 border border-amber-400/50 text-amber-300">⭐ ${w.pick}</span>` : ''}
+              <span id="click-badge-${safeId}" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center gap-1 shadow-[0_0_8px_rgba(52,211,153,0.1)]">
+                <span class="material-symbols-outlined text-[10px] align-middle">visibility</span>
+                <span class="click-count">...</span>
+              </span>
             </div>
             <h2 class="text-2xl font-bold mb-2 text-slate-100 transition-colors ${w.titleHover}">${w.title}</h2>
             <p class="text-slate-400 text-[13px] leading-relaxed flex-grow font-light">
@@ -312,7 +357,37 @@
       `;
       wGrid.innerHTML = wHtml;
 
-      // 2. Render Insights Feed
+      // 2. Supabase 실시간 조회수 데이터 로드 및 UI 반영
+      if (supabaseClient) {
+        supabaseClient
+          .from('workspace_clicks')
+          .select('*')
+          .then(({ data, error }) => {
+            if (error) {
+              console.error("조회수 로드 실패:", error);
+              document.querySelectorAll('.click-count').forEach(el => el.textContent = 'N/A');
+              return;
+            }
+            const clickMap = {};
+            if (data) {
+              data.forEach(item => {
+                clickMap[item.url] = item.clicks;
+              });
+            }
+            WORKSPACES.forEach(w => {
+              const safeId = w.url.replace(/[^a-zA-Z0-9]/g, '-');
+              const countEl = document.querySelector(`#click-badge-${safeId} .click-count`);
+              if (countEl) {
+                countEl.textContent = clickMap[w.url] !== undefined ? clickMap[w.url] : 0;
+              }
+            });
+          });
+      } else {
+        // API 키 설정 대기 중에는 플레이스홀더 표시
+        document.querySelectorAll('.click-count').forEach(el => el.textContent = '-');
+      }
+
+      // 3. Render Insights Feed
       const container = document.getElementById('insights-feed-container');
       if(window.INSIGHTS_DB && window.INSIGHTS_DB.length > 0) {
         let html = '';
